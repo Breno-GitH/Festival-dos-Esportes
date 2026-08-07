@@ -23,6 +23,10 @@ const insignias = {
 // -------------------------------------------------------------
 const zorpImg = new Image(); zorpImg.src = "zorp.png";
 const bgPingPong = new Image(); bgPingPong.src = "bg_pingpong.png?v=2";
+const imgArcoSprites = new Image(); 
+imgArcoSprites.src = "Sprites_MG_AF.png"; 
+const imgArenaArco = new Image();
+imgArenaArco.src = "Arena_Arco.png"; 
 
 // NPCs Globais
 const imgTurista = new Image(); imgTurista.src = "npc_turista.png";
@@ -44,7 +48,7 @@ const imgMestreMD = new Image(); imgMestreMD.src = "mestre_md.png";
 const imgMestreHit = new Image(); imgMestreHit.src = "mestre_hit.png";
 
 // -------------------------------------------------------------
-// 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO
+// 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO (GERAL E PING PONG)
 // -------------------------------------------------------------
 const player = { 
     x: 225, 
@@ -73,8 +77,638 @@ const pingPong = {
     power: 0, maxPower: 100, isPowerActive: false
 };
 
-// Obstáculos e Elementos Interativos/Decorativos por Ilha
-// Obstáculos e Elementos Interativos/Decorativos por Ilha
+// -------------------------------------------------------------
+// MINIGAME ARCO E FLECHA (MOVIMENTO E TIRO FRONTAL)
+// -------------------------------------------------------------
+const arcoGame = {
+    playerScore: 0,
+    mestreScore: 0,
+    targetScore: 200,
+    
+    // Status do Jogador (Zorp) - Posições ajustadas para o fundo
+    playerX: 120,
+    playerY: 420, // Será reajustado no reset para se adaptar à tela
+    playerSpeed: 4.5,
+    playerState: 'IDLE',
+    playerFrame: 0,
+    playerFrameTimer: 0,
+    playerShootCooldown: 0,
+
+    // Status do Mestre - Posições ajustadas para o fundo
+    mestreX: 330,
+    mestreY: 420,
+    mestreSpeed: 3.5,
+    mestreState: 'IDLE',
+    mestreFrame: 0,
+    mestreFrameTimer: 0,
+    mestreShootCooldown: 0,
+
+    arrows: [],
+    targets: [],
+    spawnTimer: 0
+};
+function drawArcoGame() {
+    // 1. Desenhar Cenário (Arena)
+    if (imgArenaArco.complete && imgArenaArco.naturalWidth > 0) {
+        ctx.drawImage(imgArenaArco, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#66bb6a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 2. Desenhar Alvos móveis
+    arcoGame.targets.forEach(t => {
+        ctx.fillStyle = "#5d4037"; ctx.fillRect(Math.floor(t.x - 2), Math.floor(t.y), 4, 20);
+        ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`${t.points}p`, Math.floor(t.x - 10), Math.floor(t.y - t.radius - 6));
+    });
+
+    if (imgArcoSprites.complete && imgArcoSprites.naturalWidth > 0) {
+        ctx.imageSmoothingEnabled = false;
+
+        let frameW = imgArcoSprites.width / 8;
+        let frameH = imgArcoSprites.height / 2;
+        
+        let renderHeight = 110; 
+        let renderWidth = renderHeight * (frameW / frameH);
+
+        // 3. Desenhar Flechas 
+        let arrowSrcX = Math.floor(7 * frameW + (frameW * 0.3));
+        let arrowSrcY = Math.floor(frameH * 0.2);                
+        let arrowSrcW = Math.floor(frameW * 0.5);                
+        let arrowSrcH = Math.floor(frameH * 0.8);                
+
+        let arrowRenderWidth = 22;  
+        let arrowRenderHeight = 36; 
+
+        arcoGame.arrows.forEach(arr => {
+            ctx.drawImage(
+                imgArcoSprites, 
+                arrowSrcX, arrowSrcY, arrowSrcW, arrowSrcH, 
+                Math.floor(arr.x - arrowRenderWidth / 2), Math.floor(arr.y - arrowRenderHeight / 2), 
+                arrowRenderWidth, arrowRenderHeight
+            );
+        });
+
+        // 4. Desenhar Personagens
+        
+        // --- ZORP ---
+        let pRow = 0; 
+        let pCol = arcoGame.playerState === 'SHOOT' ? 2 : Math.floor(arcoGame.playerFrame);
+        
+        // Arredondamento absoluto para evitar sub-pixels (recortes)
+        let pSx = Math.floor(pCol * frameW);
+        let pSy = Math.floor(pRow * frameH);
+        let pSw = Math.floor(frameW);
+        let pSh = Math.floor(frameH);
+
+        let pDx = Math.floor(arcoGame.playerX - (renderWidth / 2));
+        let pDy = Math.floor(arcoGame.playerY - renderHeight + 15);
+        let pDw = Math.floor(renderWidth);
+        let pDh = Math.floor(renderHeight);
+
+        ctx.drawImage(
+            imgArcoSprites, 
+            pSx, pSy, pSw, pSh, 
+            pDx, pDy, pDw, pDh
+        );
+
+        // --- MESTRE ---
+        let mRow = 0; 
+        let mCol = arcoGame.mestreState === 'SHOOT' ? 6 : 4 + Math.floor(arcoGame.mestreFrame); 
+        
+        let mSx = Math.floor(mCol * frameW);
+        let mSy = Math.floor(mRow * frameH);
+        let mSw = Math.floor(frameW);
+        let mSh = Math.floor(frameH);
+
+        let mDx = Math.floor(arcoGame.mestreX - (renderWidth / 2));
+        let mDy = Math.floor(arcoGame.mestreY - renderHeight + 15);
+        let mDw = Math.floor(renderWidth);
+        let mDh = Math.floor(renderHeight);
+
+        ctx.drawImage(
+            imgArcoSprites, 
+            mSx, mSy, mSw, mSh, 
+            mDx, mDy, mDw, mDh
+        );
+        
+    } else {
+        // Fallbacks caso a imagem falhe
+        arcoGame.arrows.forEach(arr => {
+            ctx.fillStyle = "#ecf0f1"; ctx.fillRect(Math.floor(arr.x - 1), Math.floor(arr.y), 2, 14);
+        });
+        ctx.fillStyle = "#2ecc71"; ctx.fillRect(Math.floor(arcoGame.playerX - 15), Math.floor(arcoGame.playerY - 40), 30, 40);
+        ctx.fillStyle = "#e74c3c"; ctx.fillRect(Math.floor(arcoGame.mestreX - 15), Math.floor(arcoGame.mestreY - 40), 30, 40);
+    }
+
+    // 5. Placar superior
+    ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0, 0, canvas.width, 30);
+    ctx.fillStyle = "#f1c40f"; ctx.font = "bold 14px monospace";
+    ctx.fillText(`ZORP: ${arcoGame.playerScore}/${arcoGame.targetScore}`, 20, 20);
+    
+    ctx.fillStyle = "#e74c3c";
+    let mestreText = `MESTRE: ${arcoGame.mestreScore}/${arcoGame.targetScore}`;
+    ctx.fillText(mestreText, canvas.width - ctx.measureText(mestreText).width - 20, 20);
+}
+
+function resetArco() {
+    arcoGame.playerScore = 0;
+    arcoGame.mestreScore = 0;
+    arcoGame.playerX = 150;
+    arcoGame.mestreX = canvas.width - 150;
+    
+    // Posiciona os dois perfeitamente na grama, atrás da cerca
+    arcoGame.playerY = canvas.height - 75; 
+    arcoGame.mestreY = canvas.height - 75;
+    
+    arcoGame.playerState = 'IDLE';
+    arcoGame.mestreState = 'IDLE';
+    arcoGame.playerShootCooldown = 0;
+    arcoGame.mestreShootCooldown = 0;
+    arcoGame.arrows = [];
+    arcoGame.targets = [];
+    arcoGame.spawnTimer = 0;
+}
+
+function resetArco() {
+    arcoGame.playerScore = 0;
+    arcoGame.mestreScore = 0;
+    arcoGame.playerX = 150;
+    arcoGame.mestreX = canvas.width - 150;
+    
+    // Trava os personagens na parte inferior da tela, logo acima do limite da cerca
+    arcoGame.playerY = canvas.height - 40; 
+    arcoGame.mestreY = canvas.height - 40;
+    
+    arcoGame.playerState = 'IDLE';
+    arcoGame.mestreState = 'IDLE';
+    arcoGame.playerShootCooldown = 0;
+    arcoGame.mestreShootCooldown = 0;
+    arcoGame.arrows = [];
+    arcoGame.targets = [];
+    arcoGame.spawnTimer = 0;
+}
+
+function spawnArcoTarget() {
+    const speeds = [1.5, 2.5, 3.5];
+    const selectedSpeed = speeds[Math.floor(Math.random() * speeds.length)];
+    const side = Math.random() > 0.5 ? 1 : -1;
+    const startX = side === 1 ? -20 : canvas.width + 20;
+    
+    arcoGame.targets.push({
+        x: startX,
+        y: 60 + Math.random() * 80, // Alvos na parte superior
+        radius: 18 - selectedSpeed * 2, 
+        speedX: selectedSpeed * side,
+        points: Math.round(selectedSpeed * 10)
+    });
+}
+
+function updateArco() {
+    hintText.innerText = "[A D] MOVER | [ESPAÇO] ATIRAR FLECHA";
+
+    // 1. Geração de alvos
+    arcoGame.spawnTimer++;
+    if (arcoGame.spawnTimer > 45 && arcoGame.targets.length < 6) {
+        spawnArcoTarget();
+        arcoGame.spawnTimer = 0;
+    }
+
+    // 2. Movimento e Animação do Jogador
+    let isMoving = false;
+    if (arcoGame.playerState !== 'SHOOT') {
+        if (keys.a) {
+            arcoGame.playerX = Math.max(30, arcoGame.playerX - arcoGame.playerSpeed);
+            isMoving = true;
+        }
+        if (keys.d) {
+            arcoGame.playerX = Math.min(canvas.width / 2 - 20, arcoGame.playerX + arcoGame.playerSpeed);
+            isMoving = true;
+        }
+        arcoGame.playerState = isMoving ? 'MOVE' : 'IDLE';
+    }
+
+    // 3. Disparo do Jogador
+    if (arcoGame.playerShootCooldown > 0) arcoGame.playerShootCooldown--;
+    if (keys.space && arcoGame.playerShootCooldown === 0) {
+        arcoGame.playerState = 'SHOOT';
+        arcoGame.playerShootTimer = 15; // Tempo que ele fica travado na pose de tiro
+        
+        arcoGame.arrows.push({
+            x: arcoGame.playerX, 
+            y: arcoGame.playerY - 40,
+            speedY: -8,
+            owner: 'PLAYER'
+        });
+        arcoGame.playerShootCooldown = 25;
+    }
+
+    // Lógica de Animação do Jogador
+    if (arcoGame.playerState === 'SHOOT') {
+        arcoGame.playerShootTimer--;
+        if (arcoGame.playerShootTimer <= 0) arcoGame.playerState = 'IDLE';
+    } else {
+        arcoGame.playerFrameTimer++;
+        if (arcoGame.playerFrameTimer > 6) {
+            arcoGame.playerFrameTimer = 0;
+            arcoGame.playerFrame = isMoving ? (arcoGame.playerFrame + 1) % 3 : 0;
+        }
+    }
+
+    // 4. IA do Mestre
+    if (arcoGame.mestreShootCooldown > 0) arcoGame.mestreShootCooldown--;
+    let target = arcoGame.targets.find(t => t.x > canvas.width / 2);
+    if (!target && arcoGame.targets.length > 0) target = arcoGame.targets[0];
+
+    let mestreMoving = false;
+    if (target && arcoGame.mestreState !== 'SHOOT') {
+        let diffX = (target.x + target.speedX * 5) - arcoGame.mestreX; 
+        
+        if (Math.abs(diffX) > 10) {
+            arcoGame.mestreX += Math.sign(diffX) * arcoGame.mestreSpeed;
+            mestreMoving = true;
+        } else if (arcoGame.mestreShootCooldown === 0) {
+            arcoGame.mestreState = 'SHOOT';
+            arcoGame.mestreShootTimer = 15; // Tempo que o mestre fica na pose
+            
+            arcoGame.arrows.push({
+                x: arcoGame.mestreX,
+                y: arcoGame.mestreY - 40,
+                speedY: -8,
+                owner: 'MESTRE'
+            });
+            arcoGame.mestreShootCooldown = 30;
+        }
+    }
+    
+    arcoGame.mestreX = Math.max(canvas.width / 2 + 20, Math.min(canvas.width - 30, arcoGame.mestreX));
+    if (arcoGame.mestreState !== 'SHOOT') arcoGame.mestreState = mestreMoving ? 'MOVE' : 'IDLE';
+
+    // Lógica de Animação do Mestre
+    if (arcoGame.mestreState === 'SHOOT') {
+        arcoGame.mestreShootTimer--;
+        if (arcoGame.mestreShootTimer <= 0) arcoGame.mestreState = 'IDLE';
+    } else {
+        arcoGame.mestreFrameTimer++;
+        if (arcoGame.mestreFrameTimer > 6) {
+            arcoGame.mestreFrameTimer = 0;
+            arcoGame.mestreFrame = mestreMoving ? (arcoGame.mestreFrame + 1) % 3 : 0;
+        }
+    }
+
+    // 5. Atualização dos Alvos
+    for (let i = arcoGame.targets.length - 1; i >= 0; i--) {
+        let t = arcoGame.targets[i];
+        t.x += t.speedX;
+        if (t.x < -30 || t.x > canvas.width + 30) arcoGame.targets.splice(i, 1);
+    }
+
+    // 6. Atualização de Flechas e Colisão
+    for (let i = arcoGame.arrows.length - 1; i >= 0; i--) {
+        let arr = arcoGame.arrows[i];
+        arr.y += arr.speedY; 
+
+        let hit = false;
+        for (let j = arcoGame.targets.length - 1; j >= 0; j--) {
+            let t = arcoGame.targets[j];
+            let dist = Math.hypot(arr.x - t.x, arr.y - t.y);
+            
+            if (dist <= t.radius + 8) {
+                if (arr.owner === 'PLAYER') arcoGame.playerScore += t.points;
+                else arcoGame.mestreScore += t.points;
+
+                arcoGame.targets.splice(j, 1);
+                hit = true;
+                break;
+            }
+        }
+        
+        if (hit || arr.y < -10) arcoGame.arrows.splice(i, 1);
+    }
+
+    // 7. Condição de Vitória
+    if (arcoGame.playerScore >= arcoGame.targetScore) {
+        insignias.arco = true;
+        currentScene = "ILHA_ARCO";
+        dialogText.innerHTML = `> MESTRE ARQUEIRO: Fantástico! Você venceu a disputa com ${arcoGame.playerScore} pontos!`;
+        dialogBox.classList.add("show");
+    } else if (arcoGame.mestreScore >= arcoGame.targetScore) {
+        currentScene = "ILHA_ARCO";
+        dialogText.innerHTML = `> MESTRE ARQUEIRO: Ganhei desta vez! Mova-se rápido para alinhar seus tiros.`;
+        dialogBox.classList.add("show");
+    }
+}
+
+// -------------------------------------------------------------
+// ASSETS E MAPEAMENTO EXPLICITO: ESQUI (2D TOP-DOWN)
+// -------------------------------------------------------------
+const esquiAssets = {
+    zorp: new Image(),
+    mestre: new Image(),
+    elementos: new Image()
+};
+esquiAssets.zorp.src = "zorp_esqui.png";
+esquiAssets.mestre.src = "mestre_esqui.png";
+esquiAssets.elementos.src = "elementos_esqui.png";
+
+const ZORP_ESQUI_FRAMES = {
+    idle:  { x: 0, y: 0, w: 50, h: 60 },
+    left:  { x: 50, y: 0, w: 50, h: 60 },
+    right: { x: 100, y: 0, w: 50, h: 60 },
+    jump:  { x: 150, y: 0, w: 50, h: 60 },
+    hit:   { x: 200, y: 0, w: 50, h: 60 }
+};
+
+const MESTRE_ESQUI_FRAMES = {
+    idle:   { x: 0, y: 0, w: 60, h: 70 },
+    attack: { x: 60, y: 0, w: 60, h: 70 }
+};
+
+const ELEMENTOS_ESQUI_FRAMES = {
+    arvore:           { x: 0, y: 0, w: 64, h: 80, cw: 20, ch: 10 },
+    rocha:            { x: 64, y: 0, w: 48, h: 48, cw: 30, ch: 15 },
+    rampa:            { x: 112, y: 0, w: 80, h: 40, cw: 60, ch: 20 },
+    bolaDeNeve:       { x: 192, y: 0, w: 48, h: 48, cw: 24, ch: 24 },
+    estalactite:      { x: 240, y: 0, w: 32, h: 64, cw: 16, ch: 16 },
+    bandeiraAzul:     { x: 272, y: 0, w: 32, h: 64, cw: 5, ch: 5 },
+    bandeiraVermelha: { x: 304, y: 0, w: 32, h: 64, cw: 5, ch: 5 },
+    bonecoNeve:       { x: 336, y: 0, w: 48, h: 64, cw: 20, ch: 10 }
+};
+
+const esquiGame = {
+    playerX: 225, 
+    playerY: 240, 
+    speedX: 5, 
+    trackSpeed: 6,
+    distance: 0, 
+    maxDistance: 4000, 
+    score: 0,
+    trackOffset: 0,
+    obstacles: [],
+    isJumping: false,
+    jumpTimer: 0,
+    maxJumpTimer: 45,
+    jumpHeight: 0,
+    isHit: false,
+    hitTimer: 0,
+    bossActive: false,
+    bossX: 225,
+    bossY: -100,
+    bossTimer: 0
+};
+
+const TRACK_LEFT = 100;
+const TRACK_RIGHT = 350;
+
+function resetEsqui() {
+    esquiGame.playerX = canvas.width / 2;
+    esquiGame.distance = 0;
+    esquiGame.score = 0;
+    esquiGame.trackSpeed = 5;
+    esquiGame.obstacles = [];
+    esquiGame.isHit = false;
+    esquiGame.hitTimer = 0;
+    esquiGame.isJumping = false;
+    esquiGame.jumpHeight = 0;
+    esquiGame.bossActive = false;
+    esquiGame.bossY = -100;
+}
+
+function spawnObstacle() {
+    let isDeco = Math.random() > 0.6;
+    let type, obsX;
+
+    if (isDeco) {
+        const decos = ["arvore", "arvore", "rocha"];
+        type = decos[Math.floor(Math.random() * decos.length)];
+        obsX = Math.random() > 0.5 ? Math.random() * (TRACK_LEFT - 20) : TRACK_RIGHT + 20 + (Math.random() * (canvas.width - TRACK_RIGHT - 20));
+    } else {
+        const obs = ["rocha", "rampa", "bandeiraAzul", "bandeiraVermelha", "bonecoNeve"];
+        type = obs[Math.floor(Math.random() * obs.length)];
+        obsX = TRACK_LEFT + 20 + Math.random() * (TRACK_RIGHT - TRACK_LEFT - 40);
+    }
+
+    esquiGame.obstacles.push({
+        x: obsX,
+        y: -50,
+        type: type,
+        passed: false
+    });
+}
+
+function updateEsqui() {
+    hintText.innerText = "[A D] MOVER | [ESPAÇO] PULAR RAMPAS";
+
+    if (esquiGame.distance > 0 && esquiGame.distance % 500 === 0) {
+        esquiGame.trackSpeed = Math.min(12, esquiGame.trackSpeed + 0.5);
+    }
+
+    if (esquiGame.isJumping) {
+        esquiGame.jumpTimer--;
+        esquiGame.jumpHeight = Math.sin((1 - (esquiGame.jumpTimer / esquiGame.maxJumpTimer)) * Math.PI) * 45;
+        
+        if (esquiGame.jumpTimer <= 0) {
+            esquiGame.isJumping = false;
+            esquiGame.jumpHeight = 0;
+        }
+    }
+
+    if (esquiGame.hitTimer > 0) {
+        esquiGame.hitTimer--;
+        if (esquiGame.hitTimer === 0) {
+            esquiGame.isHit = false;
+        }
+    } else if (!esquiGame.isJumping) {
+        if (keys.a) esquiGame.playerX -= esquiGame.speedX;
+        if (keys.d) esquiGame.playerX += esquiGame.speedX;
+        
+        esquiGame.playerX = Math.max(TRACK_LEFT + 15, Math.min(TRACK_RIGHT - 15, esquiGame.playerX));
+    }
+
+    let currentSpeed = esquiGame.isHit ? esquiGame.trackSpeed * 0.4 : esquiGame.trackSpeed;
+    esquiGame.distance += currentSpeed * 0.1;
+    esquiGame.trackOffset = (esquiGame.trackOffset + currentSpeed) % 40;
+
+    if (Math.random() < 0.08 && !esquiGame.isHit) spawnObstacle();
+
+    if (!esquiGame.bossActive && esquiGame.distance > 500 && Math.random() < 0.002) {
+        esquiGame.bossActive = true;
+        esquiGame.bossY = -100;
+        esquiGame.bossX = esquiGame.playerX;
+    }
+
+    if (esquiGame.bossActive) {
+        if (esquiGame.bossY < 80) esquiGame.bossY += 2;
+        
+        esquiGame.bossTimer++;
+        if (esquiGame.bossTimer > 100) {
+            esquiGame.obstacles.push({
+                x: esquiGame.bossX,
+                y: esquiGame.bossY + 20,
+                type: "bolaDeNeve",
+                passed: false
+            });
+            esquiGame.bossTimer = 0;
+            if (Math.random() > 0.5) esquiGame.bossActive = false;
+        }
+    } else if (esquiGame.bossY > -100) {
+        esquiGame.bossY -= 2;
+    }
+
+    const pBox = { 
+        x: esquiGame.playerX - 10, 
+        y: esquiGame.playerY - 5, 
+        w: 20, 
+        h: 10 
+    };
+
+    for (let i = esquiGame.obstacles.length - 1; i >= 0; i--) {
+        let obs = esquiGame.obstacles[i];
+        let frame = ELEMENTOS_ESQUI_FRAMES[obs.type] || { cw: 20, ch: 20 };
+        
+        obs.y += currentSpeed;
+
+        if (obs.y > canvas.height + 100) {
+            esquiGame.obstacles.splice(i, 1);
+            continue;
+        }
+
+        if (!obs.passed && obs.y > esquiGame.playerY) {
+            obs.passed = true;
+            if (!esquiGame.isHit && obs.type !== "arvore") {
+                esquiGame.score += 15; 
+            }
+        }
+
+        let oBox = {
+            x: obs.x - (frame.cw / 2),
+            y: obs.y - (frame.ch / 2),
+            w: frame.cw,
+            h: frame.ch
+        };
+
+        if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+            pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+            
+            if (obs.type === "rampa") {
+                if (keys.space && !esquiGame.isJumping) {
+                    esquiGame.isJumping = true;
+                    esquiGame.jumpTimer = esquiGame.maxJumpTimer;
+                    esquiGame.score += 100;
+                }
+            } else if (!esquiGame.isJumping || esquiGame.jumpHeight < 20) {
+                esquiGame.isHit = true;
+                esquiGame.hitTimer = 45;
+                esquiGame.score = Math.max(0, esquiGame.score - 50);
+                esquiGame.obstacles.splice(i, 1);
+            }
+        }
+    }
+
+    if (esquiGame.distance >= esquiGame.maxDistance) {
+        esquiGame.score += 1000;
+        insignias.esqui = true;
+        currentScene = "ILHA_ESQUI";
+        dialogText.innerHTML = `> MESTRE DO GELO: Você dominou a descida! Pontuação: ${esquiGame.score}`;
+        dialogBox.classList.add("show");
+    }
+}
+
+function drawEsquiGame() {
+    ctx.fillStyle = "#a8d5e5";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(TRACK_LEFT, 0, TRACK_RIGHT - TRACK_LEFT, canvas.height);
+
+    ctx.strokeStyle = "#9bc6d6";
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(TRACK_LEFT, 0); ctx.lineTo(TRACK_LEFT, canvas.height); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(TRACK_RIGHT, 0); ctx.lineTo(TRACK_RIGHT, canvas.height); ctx.stroke();
+
+    ctx.strokeStyle = "#f0f8ff";
+    ctx.lineWidth = 2;
+    for (let y = esquiGame.trackOffset - 40; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(TRACK_LEFT + 40, y); ctx.lineTo(TRACK_LEFT + 40, y + 20); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(TRACK_RIGHT - 40, y); ctx.lineTo(TRACK_RIGHT - 40, y + 20); ctx.stroke();
+    }
+
+    const drawSpriteAncorado = (img, frame, posX, posY, yOffset = 0, isShadow = false) => {
+        if (!img.complete || img.naturalWidth === 0) return;
+        
+        if (isShadow) {
+            ctx.fillStyle = "rgba(0,0,0,0.15)";
+            ctx.beginPath(); ctx.ellipse(posX, posY, frame.w * 0.3, frame.w * 0.1, 0, 0, Math.PI*2); ctx.fill();
+            return;
+        }
+
+        let drawX = posX - (frame.w / 2);
+        let drawY = posY - frame.h - yOffset;
+        
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, frame.x, frame.y, frame.w, frame.h, drawX, drawY, frame.w, frame.h);
+    };
+
+    let renderList = [...esquiGame.obstacles];
+    if (esquiGame.bossActive || esquiGame.bossY > -50) {
+        renderList.push({ isBoss: true, x: esquiGame.bossX, y: esquiGame.bossY });
+    }
+    renderList.push({ isPlayer: true, x: esquiGame.playerX, y: esquiGame.playerY });
+    
+    renderList.sort((a, b) => a.y - b.y);
+
+    renderList.forEach(obj => {
+        if (obj.isBoss) {
+            let frame = esquiGame.bossTimer > 80 ? MESTRE_ESQUI_FRAMES.attack : MESTRE_ESQUI_FRAMES.idle;
+            drawSpriteAncorado(esquiAssets.mestre, frame, obj.x, obj.y, 0, true);
+            drawSpriteAncorado(esquiAssets.mestre, frame, obj.x, obj.y);
+            
+        } else if (obj.isPlayer) {
+            let playerFrame = ZORP_ESQUI_FRAMES.idle;
+            if (esquiGame.isHit) playerFrame = ZORP_ESQUI_FRAMES.hit;
+            else if (esquiGame.isJumping) playerFrame = ZORP_ESQUI_FRAMES.jump;
+            else if (keys.a) playerFrame = ZORP_ESQUI_FRAMES.left;
+            else if (keys.d) playerFrame = ZORP_ESQUI_FRAMES.right;
+
+            if (esquiGame.isHit && esquiGame.hitTimer % 8 < 4) ctx.globalAlpha = 0.5;
+            
+            drawSpriteAncorado(esquiAssets.zorp, playerFrame, obj.x, obj.y, 0, true);
+            drawSpriteAncorado(esquiAssets.zorp, playerFrame, obj.x, obj.y, esquiGame.jumpHeight);
+            
+            ctx.globalAlpha = 1.0;
+            
+        } else {
+            let frame = ELEMENTOS_ESQUI_FRAMES[obj.type];
+            if (frame) {
+                if (obj.type !== "bandeiraAzul" && obj.type !== "bandeiraVermelha") {
+                    drawSpriteAncorado(esquiAssets.elementos, frame, obj.x, obj.y, 0, true);
+                }
+                drawSpriteAncorado(esquiAssets.elementos, frame, obj.x, obj.y);
+            } else {
+                ctx.fillStyle = obj.type === 'arvore' ? '#27ae60' : '#7f8c8d';
+                ctx.fillRect(obj.x - 15, obj.y - 30, 30, 30);
+            }
+        }
+    });
+
+    ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, canvas.width, 35);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 14px monospace";
+    
+    ctx.fillStyle = "#f1c40f"; ctx.fillText(`PONTOS: ${esquiGame.score}`, 10, 22);
+    ctx.fillStyle = "#3498db"; ctx.fillText(`DIST: ${Math.floor(esquiGame.distance)}m`, 150, 22);
+    ctx.fillStyle = "#e74c3c";
+    let displaySpeed = Math.floor(esquiGame.trackSpeed * 7.5);
+    ctx.fillText(`VELOCIDADE: ${displaySpeed} km/h`, 270, 22);
+}
+
+// -------------------------------------------------------------
+// OBSTÁCULOS E NPCs (HUB)
+// -------------------------------------------------------------
 const sceneObstacles = {
     HUB: [
         { x: 130, y: 190, w: 40, h: 20, type: 'bench', solid: true },
@@ -86,49 +720,48 @@ const sceneObstacles = {
         { x: 120, y: 130, w: 35, h: 10, type: 'hurdle', solid: true },
         { x: 220, y: 130, w: 35, h: 10, type: 'hurdle', solid: true },
         { x: 320, y: 130, w: 35, h: 10, type: 'hurdle', solid: true },
-        { x: 80, y: 40, w: 40, h: 20, type: 'water_station', solid: true } // Novo
+        { x: 80, y: 40, w: 40, h: 20, type: 'water_station', solid: true }
     ],
     ILHA_SURF: [
         { x: 35, y: 35, w: 30, h: 30, type: 'palm_tree', solid: true },
         { x: 385, y: 35, w: 30, h: 30, type: 'palm_tree', solid: true },
         { x: 310, y: 180, w: 45, h: 20, type: 'surf_rack', solid: true },
-        { x: 90, y: 190, w: 40, h: 40, type: 'umbrella', solid: true },    // Novo
-        { x: 220, y: 220, w: 20, h: 20, type: 'sandcastle', solid: false } // Novo
+        { x: 90, y: 190, w: 40, h: 40, type: 'umbrella', solid: true },
+        { x: 220, y: 220, w: 20, h: 20, type: 'sandcastle', solid: false }
     ],
     ILHA_SKATE: [
         { x: 80, y: 150, w: 50, h: 30, type: 'ramp', solid: false },
         { x: 280, y: 160, w: 70, h: 15, type: 'rail', solid: true },
-        { x: 120, y: 210, w: 15, h: 15, type: 'cone', solid: true },       // Novo
-        { x: 150, y: 230, w: 15, h: 15, type: 'cone', solid: true }        // Novo
+        { x: 120, y: 210, w: 15, h: 15, type: 'cone', solid: true },
+        { x: 150, y: 230, w: 15, h: 15, type: 'cone', solid: true }
     ],
     ILHA_ARCO: [
         { x: 100, y: 45, w: 25, h: 25, type: 'target', solid: true },
         { x: 225, y: 45, w: 25, h: 25, type: 'target', solid: true },
         { x: 350, y: 45, w: 25, h: 25, type: 'target', solid: true },
-        { x: 50, y: 100, w: 10, h: 30, type: 'wind_flag', solid: false },  // Novo
-        { x: 380, y: 100, w: 10, h: 30, type: 'wind_flag', solid: false }  // Novo
+        { x: 50, y: 100, w: 10, h: 30, type: 'wind_flag', solid: false },
+        { x: 380, y: 100, w: 10, h: 30, type: 'wind_flag', solid: false }
     ],
     ILHA_BASQUETE: [
         { x: 210, y: 40, w: 30, h: 20, type: 'hoop', solid: true },
-        { x: 330, y: 180, w: 60, h: 30, type: 'bleachers', solid: true }   // Novo
+        { x: 330, y: 180, w: 60, h: 30, type: 'bleachers', solid: true }
     ],
     ILHA_ESCALADA: [
         { x: 70, y: 60, w: 30, h: 30, type: 'boulder', solid: true },
         { x: 350, y: 60, w: 30, h: 30, type: 'boulder', solid: true },
-        { x: 90, y: 200, w: 40, h: 40, type: 'tent', solid: true }         // Novo
+        { x: 90, y: 200, w: 40, h: 40, type: 'tent', solid: true }
     ],
     ILHA_ESQUI: [
         { x: 60, y: 70, w: 25, h: 35, type: 'pine_tree', solid: true },
         { x: 360, y: 70, w: 25, h: 35, type: 'pine_tree', solid: true },
-        { x: 120, y: 200, w: 20, h: 30, type: 'snowman', solid: true },    // Novo
+        { x: 120, y: 200, w: 20, h: 30, type: 'snowman', solid: true },
         { x: 280, y: 170, w: 25, h: 35, type: 'pine_tree', solid: true }
     ],
     ILHA_PINGPONG: [
-        { x: 320, y: 50, w: 60, h: 40, type: 'scoreboard', solid: true }   // Novo
+        { x: 320, y: 50, w: 60, h: 40, type: 'scoreboard', solid: true }
     ]
 };
 
-// NPCs espalhados pelas ilhas
 const npcs = [
     { scene: "HUB", x: 180, y: 180, img: imgTurista, tamanho: 48, msg: "> TURISTA: O arquipelago tem 8 modalidades esportivas!" },
     { scene: "HUB", x: 270, y: 130, img: imgGuia, tamanho: 48, msg: "> GUIA: Explore os caminhos ao Norte, Sul, Leste e Oeste." },
@@ -141,7 +774,7 @@ const npcs = [
 
     { scene: "ILHA_SKATE", x: 225, y: 80, img: imgTurista, tamanho: 48, msg: "> MESTRE DO SKATE: Acerte as manobras no half-pipe!", isMaster: "JOGO_SKATE" },
     { scene: "ILHA_BASQUETE", x: 225, y: 80, img: imgGuia, tamanho: 48, msg: "> MESTRE DO BASQUETE: Marque pontos antes do tempo acabar!", isMaster: "JOGO_BASQUETE" },
-    { scene: "ILHA_ARCO", x: 225, y: 80, img: imgAprendiz, tamanho: 48, msg: "> MESTRE ARQUEIRO: Cuidado com o vento ao mirar!", isMaster: "JOGO_ARCO" },
+    { scene: "ILHA_ARCO", x: 225, y: 80, img: imgAprendiz, tamanho: 48, msg: "> MESTRE ARQUEIRO: Acerte os alvos mais rapidos que eu!", isMaster: "JOGO_ARCO" },
     { scene: "ILHA_CORRIDA", x: 225, y: 80, img: imgAlpinista, tamanho: 48, msg: "> MESTRE DA CORRIDA: Mantenha o ritmo para nao cansar!", isMaster: "JOGO_CORRIDA" },
     { scene: "ILHA_ESCALADA", x: 225, y: 80, img: imgMestreGelo, tamanho: 48, msg: "> MESTRE DA ESCALADA: Mantenha firme as maos nas pedras!", isMaster: "JOGO_ESCALADA" },
     { scene: "ILHA_SURF", x: 225, y: 80, img: imgTurista, tamanho: 48, msg: "> MESTRE DO SURF: Pegue as maiores ondas sem cair!", isMaster: "JOGO_SURF" }
@@ -163,7 +796,7 @@ window.addEventListener("keyup", (e) => {
 });
 
 // -------------------------------------------------------------
-// 4. COLISÕES E LÓGICA DE MOVIMENTO
+// 4. COLISÕES E LÓGICA DE MOVIMENTO (HUB)
 // -------------------------------------------------------------
 function isColliding(player, box) {
     const playerBox = { x: player.x - 12, y: player.y - 16, width: 24, height: 18 };
@@ -187,7 +820,7 @@ function checkObstacleCollision(nextX, nextY) {
             feetBox.y < obs.y + obs.h &&
             feetBox.y + feetBox.h > obs.y
         ) {
-            return true; // Colidiu
+            return true; 
         }
     }
     return false;
@@ -213,13 +846,11 @@ function update() {
         if (moveX !== 0 || moveY !== 0) {
             zorpSprite.isMoving = true;
 
-            // Define a direção sem conflito (evita Zigzag)
-            if (moveY > 0) zorpSprite.row = 0;       // Frente (Baixo)
-            else if (moveY < 0) zorpSprite.row = 1;  // Costas (Cima)
-            else if (moveX < 0) zorpSprite.row = 2;  // Esquerda
-            else if (moveX > 0) zorpSprite.row = 3;  // Direita
+            if (moveY > 0) zorpSprite.row = 0;       
+            else if (moveY < 0) zorpSprite.row = 1;  
+            else if (moveX < 0) zorpSprite.row = 2;  
+            else if (moveX > 0) zorpSprite.row = 3;  
 
-            // Aplica movimento testando colisão individual por eixo
             let nextX = player.x + moveX * player.speed;
             let nextY = player.y + moveY * player.speed;
 
@@ -240,7 +871,7 @@ function update() {
             zorpSprite.timer = 0;
         }
 
-        // --- TRANSIÇÕES ENTRE AS 8 ILHAS ---
+        // Transições de Mapa
         if (currentScene === "HUB") {
             if (player.y < 5 && player.x > 200 && player.x < 240) { currentScene = "ILHA_ESQUI"; player.y = 265; }
             else if (player.x > 430 && player.y > 120 && player.y < 170) { currentScene = "ILHA_PINGPONG"; player.x = 20; }
@@ -276,7 +907,7 @@ function update() {
             if (player.y > 280) { currentScene = "ILHA_PINGPONG"; player.y = 15; }
         }
 
-        // Interação com NPCs
+        // Interação NPC
         let npcProximo = null;
         for (let npc of npcs) {
             if (npc.scene === currentScene && isColliding(player, {x: npc.x-15, y: npc.y-15, width: 46, height: 50})) {
@@ -290,11 +921,20 @@ function update() {
             
             if (keys.e || keys.space) { 
                 dialogText.innerHTML = npcProximo.msg + extra; 
+
                 if (npcProximo.isMaster === "JOGO_PINGPONG") {
                     currentScene = "JOGO_PINGPONG";
                     dialogBox.classList.remove("show");
                     resetPingPong(true);
-                } else if (npcProximo.isMaster && npcProximo.isMaster !== "JOGO_PINGPONG") {
+                } else if (npcProximo.isMaster === "JOGO_ESQUI") { 
+                    currentScene = "JOGO_ESQUI";
+                    dialogBox.classList.remove("show");
+                    resetEsqui();
+                } else if (npcProximo.isMaster === "JOGO_ARCO") {
+                    currentScene = "JOGO_ARCO";
+                    dialogBox.classList.remove("show");
+                    resetArco();
+                } else if (npcProximo.isMaster) {
                     dialogText.innerHTML = `> ${npcProximo.msg}<br><br><i>(Minigame em construcao!)</i>`;
                 }
             } else { 
@@ -306,6 +946,10 @@ function update() {
     } 
     else if (currentScene === "JOGO_PINGPONG") {
         updatePingPong();
+    } else if (currentScene === "JOGO_ESQUI") { 
+        updateEsqui();
+    } else if (currentScene === "JOGO_ARCO") {
+        updateArco();
     }
 }
 
@@ -426,7 +1070,7 @@ function updatePingPong() {
 }
 
 // -------------------------------------------------------------
-// 6. DESENHO DAS ILHAS, OBSTÁCULOS E JOGADOR
+// 6. DESENHO DAS ILHAS E OBSTÁCULOS
 // -------------------------------------------------------------
 function drawWater() {
     ctx.fillStyle = "#2b78e4"; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -459,19 +1103,17 @@ function drawPlayer() {
         const frameWidth = zorpImg.width / zorpSprite.cols;
         const frameHeight = zorpImg.height / zorpSprite.rows;
 
-        // Sequência para eliminar moonwalk de ambos os lados
         const sequences = [
-            [1, 0, 1, 2], // Frente
-            [1, 0, 1, 2], // Costas
-            [1, 2, 1, 0], // Esquerda (Invertido)
-            [1, 2, 1, 0]  // Direita (Invertido)
+            [1, 0, 1, 2], 
+            [1, 0, 1, 2], 
+            [1, 2, 1, 0], 
+            [1, 2, 1, 0]  
         ];
         
         const currentSeq = sequences[zorpSprite.row];
         const sx = currentSeq[zorpSprite.animIndex] * frameWidth;
         const sy = zorpSprite.row * frameHeight;
 
-        // Ancoragem na sombra (offset Y ajustado)
         const offsetsY = [0, 0, 15, 15]; 
         const currentOffsetY = offsetsY[zorpSprite.row] || 0;
 
@@ -503,13 +1145,10 @@ function drawNPC(npc) {
     }
 }
 
-// Desenhar Obstáculos Específicos por Cena
-// Desenhar Obstáculos Específicos por Cena
 function drawSceneObstacles() {
     const obstacles = sceneObstacles[currentScene] || [];
     obstacles.forEach(obs => {
         switch (obs.type) {
-            // --- ITENS ANTIGOS ---
             case 'hurdle':
                 ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.fillStyle = '#e74c3c'; ctx.fillRect(obs.x + 4, obs.y, 6, obs.h); ctx.fillRect(obs.x + 20, obs.y, 6, obs.h);
@@ -543,60 +1182,58 @@ function drawSceneObstacles() {
                 ctx.fillStyle = '#4e342e'; ctx.beginPath(); ctx.arc(obs.x + 15, obs.y + 15, 15, 0, Math.PI * 2); ctx.fill();
                 break;
             case 'pine_tree':
-                ctx.fillStyle = '#3e2723'; ctx.fillRect(obs.x + 10, obs.y + 25, 5, 10); // Tronco
+                ctx.fillStyle = '#3e2723'; ctx.fillRect(obs.x + 10, obs.y + 25, 5, 10); 
                 ctx.fillStyle = '#1b5e20';
                 ctx.beginPath(); ctx.moveTo(obs.x + 12, obs.y); ctx.lineTo(obs.x, obs.y + 25); ctx.lineTo(obs.x + obs.w, obs.y + 25); ctx.closePath(); ctx.fill();
                 break;
-
-            // --- NOVOS ITENS DECORATIVOS ---
-            case 'bench': // Banco de praça (HUB)
+            case 'bench':
                 ctx.fillStyle = '#8d6e63'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.fillStyle = '#5d4037'; ctx.fillRect(obs.x, obs.y + 5, obs.w, 2); ctx.fillRect(obs.x, obs.y + 12, obs.w, 2);
                 break;
-            case 'flower_bed': // Canteiro de flores (HUB)
+            case 'flower_bed': 
                 ctx.fillStyle = '#27ae60'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(obs.x + 8, obs.y + 8, 4, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(obs.x + 22, obs.y + 15, 4, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#9b59b6'; ctx.beginPath(); ctx.arc(obs.x + 10, obs.y + 22, 4, 0, Math.PI * 2); ctx.fill();
                 break;
-            case 'water_station': // Mesa de água (Corrida)
+            case 'water_station':
                 ctx.fillStyle = '#bdc3c7'; ctx.fillRect(obs.x, obs.y + 10, obs.w, 10);
                 ctx.fillStyle = '#3498db'; ctx.fillRect(obs.x + 5, obs.y + 5, 6, 5); ctx.fillRect(obs.x + 20, obs.y + 5, 6, 5);
                 break;
-            case 'umbrella': // Guarda-sol (Surf)
-                ctx.fillStyle = '#d35400'; ctx.fillRect(obs.x + 18, obs.y + 15, 4, 25); // Haste
+            case 'umbrella': 
+                ctx.fillStyle = '#d35400'; ctx.fillRect(obs.x + 18, obs.y + 15, 4, 25);
                 ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(obs.x + 20, obs.y + 15, 20, Math.PI, 0); ctx.fill();
                 ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(obs.x + 20, obs.y + 15, 10, Math.PI, 0); ctx.fill();
                 break;
-            case 'sandcastle': // Castelo de areia (Surf)
+            case 'sandcastle': 
                 ctx.fillStyle = '#f39c12'; ctx.fillRect(obs.x, obs.y + 5, obs.w, 15);
                 ctx.fillRect(obs.x, obs.y, 5, 5); ctx.fillRect(obs.x + 7, obs.y, 6, 5); ctx.fillRect(obs.x + 15, obs.y, 5, 5);
                 break;
-            case 'cone': // Cone (Skate)
+            case 'cone': 
                 ctx.fillStyle = '#e67e22'; ctx.beginPath(); ctx.moveTo(obs.x + 7, obs.y); ctx.lineTo(obs.x, obs.y + 15); ctx.lineTo(obs.x + 15, obs.y + 15); ctx.closePath(); ctx.fill();
                 ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + 3, obs.y + 5, 9, 3);
                 break;
-            case 'wind_flag': // Bandeira (Arco)
+            case 'wind_flag':
                 ctx.fillStyle = '#7f8c8d'; ctx.fillRect(obs.x, obs.y, 3, obs.h);
                 ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(obs.x + 3, obs.y + 2); ctx.lineTo(obs.x + 20, obs.y + 8); ctx.lineTo(obs.x + 3, obs.y + 14); ctx.closePath(); ctx.fill();
                 break;
-            case 'bleachers': // Arquibancada (Basquete)
+            case 'bleachers': 
                 ctx.fillStyle = '#95a5a6'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.fillStyle = '#7f8c8d'; ctx.fillRect(obs.x, obs.y + 10, obs.w, 2); ctx.fillRect(obs.x, obs.y + 20, obs.w, 2);
                 break;
-            case 'tent': // Barraca (Escalada)
+            case 'tent': 
                 ctx.fillStyle = '#2ecc71'; ctx.beginPath(); ctx.moveTo(obs.x + 20, obs.y); ctx.lineTo(obs.x, obs.y + 30); ctx.lineTo(obs.x + 40, obs.y + 30); ctx.closePath(); ctx.fill();
                 ctx.fillStyle = '#27ae60'; ctx.beginPath(); ctx.moveTo(obs.x + 20, obs.y); ctx.lineTo(obs.x + 20, obs.y + 30); ctx.lineTo(obs.x + 40, obs.y + 30); ctx.closePath(); ctx.fill();
                 ctx.fillStyle = '#333333'; ctx.beginPath(); ctx.moveTo(obs.x + 20, obs.y + 15); ctx.lineTo(obs.x + 10, obs.y + 30); ctx.lineTo(obs.x + 30, obs.y + 30); ctx.closePath(); ctx.fill();
                 break;
-            case 'snowman': // Boneco de neve (Esqui)
+            case 'snowman': 
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath(); ctx.arc(obs.x + 10, obs.y + 22, 8, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(obs.x + 10, obs.y + 10, 6, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#d35400'; ctx.beginPath(); ctx.moveTo(obs.x + 10, obs.y + 10); ctx.lineTo(obs.x + 18, obs.y + 12); ctx.lineTo(obs.x + 10, obs.y + 14); ctx.closePath(); ctx.fill(); // Nariz
-                ctx.fillStyle = '#333333'; ctx.fillRect(obs.x + 5, obs.y, 10, 5); ctx.fillRect(obs.x + 2, obs.y + 5, 16, 2); // Chapéu
+                ctx.fillStyle = '#d35400'; ctx.beginPath(); ctx.moveTo(obs.x + 10, obs.y + 10); ctx.lineTo(obs.x + 18, obs.y + 12); ctx.lineTo(obs.x + 10, obs.y + 14); ctx.closePath(); ctx.fill(); 
+                ctx.fillStyle = '#333333'; ctx.fillRect(obs.x + 5, obs.y, 10, 5); ctx.fillRect(obs.x + 2, obs.y + 5, 16, 2); 
                 break;
-            case 'scoreboard': // Placar (Ping-Pong)
+            case 'scoreboard': 
                 ctx.fillStyle = '#2c3e50'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.strokeStyle = '#ecf0f1'; ctx.lineWidth = 2; ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
                 ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 12px monospace'; ctx.fillText('00', obs.x + 10, obs.y + 25);
@@ -607,18 +1244,16 @@ function drawSceneObstacles() {
     });
 }
 
-// Cenas das Ilhas
 function drawHUB() {
     drawWater();
-    drawPath(205, 0, 40, 80);    // Norte
-    drawPath(205, 220, 40, 80);  // Sul
-    drawPath(310, 130, 140, 40); // Leste
-    drawPath(0, 130, 140, 40);   // Oeste
+    drawPath(205, 0, 40, 80);    
+    drawPath(205, 220, 40, 80);  
+    drawPath(310, 130, 140, 40); 
+    drawPath(0, 130, 140, 40);   
 
     ctx.fillStyle = "#7dbd42";
     ctx.beginPath(); ctx.arc(225, 150, 95, 0, Math.PI*2); ctx.fill();
 
-    // Monumento Central
     ctx.fillStyle = "#bdc3c7"; ctx.fillRect(190, 115, 70, 70);
     ctx.strokeStyle = "#7f8c8d"; ctx.strokeRect(190, 115, 70, 70);
 }
@@ -639,7 +1274,7 @@ function drawIlhaPingPong() {
 function drawIlhaSkate() {
     drawWater();
     ctx.fillStyle = "#9e9e9e"; ctx.fillRect(15, 15, 420, 270); 
-    ctx.fillStyle = "#e0e0e0"; ctx.fillRect(60, 60, 330, 180); // Half-pipe
+    ctx.fillStyle = "#e0e0e0"; ctx.fillRect(60, 60, 330, 180); 
     drawPath(205, 0, 40, 30);
     drawPath(420, 130, 30, 40);
     drawPath(0, 130, 30, 40);
@@ -662,25 +1297,25 @@ function drawIlhaArco() {
 function drawIlhaCorrida() {
     drawWater();
     ctx.fillStyle = "#d84315"; ctx.fillRect(15, 15, 420, 270); 
-    ctx.fillStyle = "#4caf50"; ctx.fillRect(70, 60, 310, 180); // Gramado
+    ctx.fillStyle = "#4caf50"; ctx.fillRect(70, 60, 310, 180); 
     drawPath(420, 130, 30, 40);
 }
 
 function drawIlhaEscalada() {
     drawWater();
     ctx.fillStyle = "#795548"; ctx.fillRect(15, 15, 420, 270); 
-    ctx.fillStyle = "#5d4037"; ctx.fillRect(40, 30, 370, 220); // Parede
+    ctx.fillStyle = "#5d4037"; ctx.fillRect(40, 30, 370, 220); 
     drawPath(205, 270, 40, 30);
 }
 
 function drawIlhaSurf() {
     drawWater();
-    ctx.fillStyle = "#fff59d"; ctx.fillRect(15, 15, 420, 270); // Areia
+    ctx.fillStyle = "#fff59d"; ctx.fillRect(15, 15, 420, 270); 
     drawPath(205, 270, 40, 30);
 }
 
 // -------------------------------------------------------------
-// 7. RENDERIZADOR DO PING PONG
+// 7. RENDERIZADOR DO PING PONG E HUD GERAL
 // -------------------------------------------------------------
 function drawPingPongGame() {
     ctx.imageSmoothingEnabled = false;
@@ -729,6 +1364,28 @@ function drawPingPongGame() {
     ctx.strokeStyle = "#fff"; ctx.strokeRect(80, 40, 100, 10);
 }
 
+function drawHUD() {
+    const size = 15;
+    const spacing = 22;
+    const startX = 20;
+    const startY = canvas.height - 30; 
+    let i = 0;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(5, canvas.height - 40, 200, 35);
+
+    for (let esporte in insignias) {
+        ctx.fillStyle = insignias[esporte] ? "#f1c40f" : "#7f8c8d";
+        ctx.beginPath();
+        ctx.arc(startX + (i * spacing), startY, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        i++;
+    }
+}
+
 // -------------------------------------------------------------
 // 8. LOOP PRINCIPAL
 // -------------------------------------------------------------
@@ -745,6 +1402,8 @@ function draw() {
     else if (currentScene === "ILHA_ESCALADA") drawIlhaEscalada();
     else if (currentScene === "ILHA_SURF") drawIlhaSurf();
     else if (currentScene === "JOGO_PINGPONG") drawPingPongGame();
+    else if (currentScene === "JOGO_ESQUI") drawEsquiGame();
+    else if (currentScene === "JOGO_ARCO") drawArcoGame();
     
     if (!currentScene.startsWith("JOGO_")) {
         drawSceneObstacles();
@@ -753,30 +1412,10 @@ function draw() {
         }
         drawPlayer();
     }
-    // Adicione dentro da seção 6 ou 7 do seu código
-function drawHUD() {
-    const marginX = 10;
-    const marginY = 10;
-    const size = 20;
-    let i = 0;
-
-    // Fundo semitransparente para o HUD
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.fillRect(5, 5, 230, 30);
-
-    // Iterar sobre o objeto de insígnias já existente
-    for (let esporte in insignias) {
-        // Se o jogador tem a insígnia, desenha dourado. Se não, cinza escuro.
-        ctx.fillStyle = insignias[esporte] ? "#f1c40f" : "#7f8c8d";
-        ctx.beginPath();
-        ctx.arc(marginX + 15 + (i * 25), marginY + 10, size / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        i++;
+    
+    if (currentScene !== "JOGO_ESQUI" && currentScene !== "JOGO_ARCO") {
+        drawHUD();
     }
-}
 }
 
 function gameLoop() { 

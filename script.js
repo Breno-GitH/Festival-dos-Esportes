@@ -23,11 +23,13 @@ const insignias = {
 // -------------------------------------------------------------
 const zorpImg = new Image(); zorpImg.src = "zorp.png";
 const bgPingPong = new Image(); bgPingPong.src = "bg_pingpong.png?v=2";
-const imgArcoSprites = new Image(); 
-imgArcoSprites.src = "Sprites_MG_AF.png"; 
-const imgArenaArco = new Image();
-imgArenaArco.src = "Arena_Arco.png"; 
+const imgArcoSprites = new Image(); imgArcoSprites.src = "Sprites_MG_AF.png"; 
+const imgArenaArco = new Image(); imgArenaArco.src = "Arena_Arco.png"; 
 
+// Sprites Basquete (Carregando os arquivos separados presentes na pasta)
+const imgZorpBasquete = new Image(); imgZorpBasquete.src = "zorp_basq.png";
+const imgMestreBasquete = new Image(); imgMestreBasquete.src = "Mestre_basq.png";
+const imgArenaBasquete = new Image(); imgArenaBasquete.src = "Arena_Basquete.png";
 // NPCs Globais
 const imgTurista = new Image(); imgTurista.src = "npc_turista.png";
 const imgGuia = new Image(); imgGuia.src = "npc_guia.png";
@@ -85,16 +87,14 @@ const arcoGame = {
     mestreScore: 0,
     targetScore: 200,
     
-    // Status do Jogador (Zorp) - Posições ajustadas para o fundo
     playerX: 120,
-    playerY: 420, // Será reajustado no reset para se adaptar à tela
+    playerY: 420,
     playerSpeed: 4.5,
     playerState: 'IDLE',
     playerFrame: 0,
     playerFrameTimer: 0,
     playerShootCooldown: 0,
 
-    // Status do Mestre - Posições ajustadas para o fundo
     mestreX: 330,
     mestreY: 420,
     mestreSpeed: 3.5,
@@ -107,15 +107,394 @@ const arcoGame = {
     targets: [],
     spawnTimer: 0
 };
+
+// -------------------------------------------------------------
+// MINIGAME BASQUETE (TIMING COM SPRITES)
+// -------------------------------------------------------------
+const basqueteGame = {
+    phase: 'READY',       // READY, POWER, ANGLE, SHOOTING, RESULT
+    round: 0,
+    maxRounds: 5,
+    playerScore: 0,
+    
+    // Status dos Sprites dos Personagens
+    playerX: 140,
+    playerY: 230,
+    playerState: 'IDLE',  // IDLE, PREP, SHOOT, WIN, LOSE
+    playerFrame: 0,
+    playerFrameTimer: 0,
+
+    mestreX: 310,
+    mestreY: 230,
+    mestreState: 'IDLE',  // IDLE, DEFEND, WIN, LOSE
+    mestreFrame: 0,
+    mestreFrameTimer: 0,
+    
+    // Power bar (vertical)
+    powerValue: 0,        
+    powerDir: 1,          
+    powerSpeed: 2.2,      
+    powerLocked: -1,      
+    powerSweetMin: 40,    
+    powerSweetMax: 60,
+    
+    // Angle bar (horizontal)
+    angleValue: 0,
+    angleDir: 1,
+    angleSpeed: 2.8,
+    angleLocked: -1,
+    angleSweetMin: 40,
+    angleSweetMax: 60,
+    
+    // Ball animation
+    ballX: 140,
+    ballY: 190,
+    ballTargetX: 225,
+    ballTargetY: 60,
+    ballAnimTimer: 0,
+    ballAnimDuration: 40,
+    ballStartX: 140,
+    ballStartY: 190,
+    
+    // Result display
+    resultTimer: 0,
+    resultText: '',
+    shotResult: '',  // 'SWISH', 'GOOD', 'MISS'
+    
+    // Countdown
+    countdownTimer: 0,
+    
+    // Difficulty ramp
+    speedIncrease: 0.15
+};
+
+function resetBasquete() {
+    basqueteGame.phase = 'READY';
+    basqueteGame.round = 0;
+    basqueteGame.playerScore = 0;
+    basqueteGame.powerSpeed = 2.2;
+    basqueteGame.angleSpeed = 2.8;
+    basqueteGame.countdownTimer = 60;
+    _resetBasqueteRound();
+}
+
+function _resetBasqueteRound() {
+    basqueteGame.powerValue = 0;
+    basqueteGame.powerDir = 1;
+    basqueteGame.powerLocked = -1;
+    basqueteGame.angleValue = 0;
+    basqueteGame.angleDir = 1;
+    basqueteGame.angleLocked = -1;
+    basqueteGame.ballAnimTimer = 0;
+    basqueteGame.resultTimer = 0;
+    basqueteGame.resultText = '';
+    basqueteGame.shotResult = '';
+    basqueteGame.playerState = 'IDLE';
+    basqueteGame.mestreState = 'IDLE';
+    basqueteGame.ballX = 140;
+    basqueteGame.ballY = 190;
+}
+
+function updateBasquete() {
+    hintText.innerText = "[ESPAÇO] TRAVAR FORÇA / ÂNGULO";
+    
+    // Animação contínua de frames dos sprites
+    basqueteGame.playerFrameTimer++;
+    if (basqueteGame.playerFrameTimer > 10) {
+        basqueteGame.playerFrameTimer = 0;
+        basqueteGame.playerFrame = (basqueteGame.playerFrame + 1) % 2;
+        basqueteGame.mestreFrame = (basqueteGame.mestreFrame + 1) % 2;
+    }
+
+    if (basqueteGame.countdownTimer > 0) {
+        basqueteGame.countdownTimer--;
+        return;
+    }
+    
+    if (basqueteGame.phase === 'READY') {
+        basqueteGame.phase = 'POWER';
+        basqueteGame.playerState = 'PREP';
+        basqueteGame.mestreState = 'DEFEND';
+    }
+    
+    // Phase: POWER
+    if (basqueteGame.phase === 'POWER') {
+        basqueteGame.powerValue += basqueteGame.powerSpeed * basqueteGame.powerDir;
+        if (basqueteGame.powerValue >= 100) { basqueteGame.powerValue = 100; basqueteGame.powerDir = -1; }
+        if (basqueteGame.powerValue <= 0) { basqueteGame.powerValue = 0; basqueteGame.powerDir = 1; }
+        
+        if (keys.space) {
+            basqueteGame.powerLocked = basqueteGame.powerValue;
+            basqueteGame.phase = 'ANGLE';
+            keys.space = false;
+        }
+    }
+    
+    // Phase: ANGLE
+    else if (basqueteGame.phase === 'ANGLE') {
+        basqueteGame.angleValue += basqueteGame.angleSpeed * basqueteGame.angleDir;
+        if (basqueteGame.angleValue >= 100) { basqueteGame.angleValue = 100; basqueteGame.angleDir = -1; }
+        if (basqueteGame.angleValue <= 0) { basqueteGame.angleValue = 0; basqueteGame.angleDir = 1; }
+        
+        if (keys.space) {
+            basqueteGame.angleLocked = basqueteGame.angleValue;
+            basqueteGame.phase = 'SHOOTING';
+            basqueteGame.playerState = 'SHOOT';
+            basqueteGame.ballAnimTimer = 0;
+            
+            let powerErr = Math.abs(basqueteGame.powerLocked - 50);
+            let angleErr = Math.abs(basqueteGame.angleLocked - 50);
+            
+            basqueteGame.ballStartX = basqueteGame.playerX;
+            basqueteGame.ballStartY = basqueteGame.playerY - 40;
+            basqueteGame.ballTargetX = 225 + (basqueteGame.angleLocked - 50) * 1.5;
+            basqueteGame.ballTargetY = 55 + powerErr * 0.5;
+            
+            if (powerErr <= 10 && angleErr <= 10) {
+                basqueteGame.shotResult = 'SWISH';
+            } else if (powerErr <= 20 && angleErr <= 20) {
+                basqueteGame.shotResult = 'GOOD';
+            } else {
+                basqueteGame.shotResult = 'MISS';
+            }
+            
+            keys.space = false;
+        }
+    }
+    
+    // Phase: SHOOTING
+    else if (basqueteGame.phase === 'SHOOTING') {
+        basqueteGame.ballAnimTimer++;
+        let t = basqueteGame.ballAnimTimer / basqueteGame.ballAnimDuration;
+        
+        if (t >= 1) {
+            t = 1;
+            basqueteGame.phase = 'RESULT';
+            basqueteGame.round++;
+            
+            if (basqueteGame.shotResult === 'SWISH') {
+                basqueteGame.playerScore += 3;
+                basqueteGame.resultText = 'SWISH! +3';
+                basqueteGame.playerState = 'WIN';
+                basqueteGame.mestreState = 'LOSE';
+            } else if (basqueteGame.shotResult === 'GOOD') {
+                basqueteGame.playerScore += 2;
+                basqueteGame.resultText = 'CESTA! +2';
+                basqueteGame.playerState = 'WIN';
+                basqueteGame.mestreState = 'LOSE';
+            } else {
+                basqueteGame.resultText = 'ERROU!';
+                basqueteGame.playerState = 'LOSE';
+                basqueteGame.mestreState = 'WIN';
+            }
+            basqueteGame.resultTimer = 90;
+        }
+        
+        let linearX = basqueteGame.ballStartX + (basqueteGame.ballTargetX - basqueteGame.ballStartX) * t;
+        let linearY = basqueteGame.ballStartY + (basqueteGame.ballTargetY - basqueteGame.ballStartY) * t;
+        let arcHeight = -120 * Math.sin(t * Math.PI);
+        
+        basqueteGame.ballX = linearX;
+        basqueteGame.ballY = linearY + arcHeight;
+    }
+    
+    // Phase: RESULT
+    else if (basqueteGame.phase === 'RESULT') {
+        basqueteGame.resultTimer--;
+        
+        if (basqueteGame.resultTimer <= 0) {
+            if (basqueteGame.round >= basqueteGame.maxRounds) {
+                if (basqueteGame.playerScore >= 8) {
+                    insignias.basquete = true;
+                    currentScene = "ILHA_BASQUETE";
+                    dialogText.innerHTML = `> MESTRE DO BASQUETE: Incrível! ${basqueteGame.playerScore} pontos! Você é um craque!`;
+                    dialogBox.classList.add("show");
+                } else {
+                    currentScene = "ILHA_BASQUETE";
+                    dialogText.innerHTML = `> MESTRE DO BASQUETE: ${basqueteGame.playerScore} pontos... Tente acertar o momento perfeito!`;
+                    dialogBox.classList.add("show");
+                }
+            } else {
+                _resetBasqueteRound();
+                basqueteGame.phase = 'READY';
+                basqueteGame.countdownTimer = 30;
+                basqueteGame.powerSpeed += basqueteGame.speedIncrease;
+                basqueteGame.angleSpeed += basqueteGame.speedIncrease;
+            }
+        }
+    }
+}
+
+function drawBasqueteGame() {
+    // 1. Cenário
+    if (imgArenaBasquete.complete && imgArenaBasquete.naturalWidth > 0) {
+        ctx.drawImage(imgArenaBasquete, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c68642'; ctx.fillRect(0, 180, canvas.width, 120);
+        ctx.strokeStyle = '#e8a95b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(canvas.width, 180); ctx.stroke();
+        
+        // Tabela e Aro em vetor (fallback)
+        ctx.fillStyle = '#ecf0f1'; ctx.fillRect(205, 30, 40, 5);
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.ellipse(225, 55, 15, 5, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    
+  // 2. Personagens e Bola com Sprites Separados
+    if (imgZorpBasquete.complete && imgZorpBasquete.naturalWidth > 0 &&
+        imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+        
+        ctx.imageSmoothingEnabled = false;
+
+        let renderH = 90;
+
+        // --- ZORP BASQUETE ---
+        let zorpFrameW = imgZorpBasquete.width / 6;
+        let zorpFrameH = imgZorpBasquete.height / 2;
+        let zorpRenderW = renderH * (zorpFrameW / zorpFrameH);
+
+        let pCol = 0;
+        if (basqueteGame.playerState === 'PREP') pCol = 1;
+        else if (basqueteGame.playerState === 'SHOOT') pCol = 2;
+        else if (basqueteGame.playerState === 'WIN') pCol = 3 + basqueteGame.playerFrame;
+        else if (basqueteGame.playerState === 'LOSE') pCol = 5;
+
+        ctx.drawImage(
+            imgZorpBasquete,
+            Math.floor(pCol * zorpFrameW), 0, Math.floor(zorpFrameW), Math.floor(zorpFrameH),
+            Math.floor(basqueteGame.playerX - zorpRenderW / 2), Math.floor(basqueteGame.playerY - renderH),
+            Math.floor(zorpRenderW), Math.floor(renderH)
+        );
+
+        // --- MESTRE DO BASQUETE ---
+        let mestreFrameW = imgMestreBasquete.width / 6;
+        let mestreFrameH = imgMestreBasquete.height / 2;
+        let mestreRenderW = renderH * (mestreFrameW / mestreFrameH);
+
+        let mCol = 0;
+        if (basqueteGame.mestreState === 'DEFEND') mCol = 1;
+        else if (basqueteGame.mestreState === 'WIN') mCol = 2 + basqueteGame.mestreFrame;
+        else if (basqueteGame.mestreState === 'LOSE') mCol = 4;
+
+        ctx.drawImage(
+            imgMestreBasquete,
+            Math.floor(mCol * mestreFrameW), 0, Math.floor(mestreFrameW), Math.floor(mestreFrameH),
+            Math.floor(basqueteGame.mestreX - mestreRenderW / 2), Math.floor(basqueteGame.mestreY - renderH),
+            Math.floor(mestreRenderW), Math.floor(renderH)
+        );
+
+    } else {
+        // Fallback Vetorial caso as imagens falhem em carregar
+        ctx.fillStyle = '#2ecc71'; ctx.fillRect(basqueteGame.playerX - 15, basqueteGame.playerY - 50, 30, 50);
+        ctx.fillStyle = '#e74c3c'; ctx.fillRect(basqueteGame.mestreX - 15, basqueteGame.mestreY - 50, 30, 50);
+    }   
+
+    // 3. Desenho da Bola de Basquete
+    ctx.fillStyle = '#e67e22';
+    ctx.beginPath();
+    ctx.arc(Math.floor(basqueteGame.ballX), Math.floor(basqueteGame.ballY), 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#c0392b';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 4. Interface: BARRA DE FORÇA (Esquerda, Vertical)
+    let barX = 30, barY = 40, barW = 22, barH = 190;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
+    
+    let gradient = ctx.createLinearGradient(0, barY + barH, 0, barY);
+    gradient.addColorStop(0, '#e74c3c');
+    gradient.addColorStop(0.3, '#f39c12');
+    gradient.addColorStop(0.5, '#2ecc71');
+    gradient.addColorStop(0.7, '#f39c12');
+    gradient.addColorStop(1, '#e74c3c');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(barX, barY, barW, barH);
+    
+    let sweetY1 = barY + barH - (basqueteGame.powerSweetMax / 100) * barH;
+    let sweetY2 = barY + barH - (basqueteGame.powerSweetMin / 100) * barH;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(barX, sweetY1, barW, sweetY2 - sweetY1);
+    ctx.setLineDash([]);
+    
+    let powerY = (basqueteGame.powerLocked >= 0)
+        ? barY + barH - (basqueteGame.powerLocked / 100) * barH
+        : barY + barH - (basqueteGame.powerValue / 100) * barH;
+        
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(barX - 4, powerY - 2, barW + 8, 4);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText('FORÇA', barX - 2, barY - 8);
+
+    // 5. Interface: BARRA DE ÂNGULO (Inferior, Horizontal)
+    let aBarX = 80, aBarY = 260, aBarW = 280, aBarH = 18;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(aBarX - 2, aBarY - 2, aBarW + 4, aBarH + 4);
+    
+    let aGradient = ctx.createLinearGradient(aBarX, 0, aBarX + aBarW, 0);
+    aGradient.addColorStop(0, '#e74c3c');
+    aGradient.addColorStop(0.3, '#f39c12');
+    aGradient.addColorStop(0.5, '#2ecc71');
+    aGradient.addColorStop(0.7, '#f39c12');
+    aGradient.addColorStop(1, '#e74c3c');
+    ctx.fillStyle = aGradient;
+    ctx.fillRect(aBarX, aBarY, aBarW, aBarH);
+    
+    let sweetX1 = aBarX + (basqueteGame.angleSweetMin / 100) * aBarW;
+    let sweetX2 = aBarX + (basqueteGame.angleSweetMax / 100) * aBarW;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(sweetX1, aBarY, sweetX2 - sweetX1, aBarH);
+    ctx.setLineDash([]);
+    
+    let angleX = (basqueteGame.angleLocked >= 0)
+        ? aBarX + (basqueteGame.angleLocked / 100) * aBarW
+        : aBarX + (basqueteGame.angleValue / 100) * aBarW;
+        
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(angleX - 2, aBarY - 4, 4, aBarH + 8);
+    ctx.fillText('ÂNGULO', aBarX + aBarW / 2 - 20, aBarY + aBarH + 12);
+
+    // 6. HUD do Placar
+    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, 28);
+    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#f1c40f'; ctx.fillText(`PONTOS: ${basqueteGame.playerScore}`, 15, 19);
+    ctx.fillStyle = '#3498db'; ctx.fillText(`ARREMESSO: ${basqueteGame.round}/${basqueteGame.maxRounds}`, 160, 19);
+    
+    ctx.fillStyle = '#ffffff';
+    let phaseLabel = '';
+    if (basqueteGame.phase === 'POWER') phaseLabel = '► TRAVE A FORÇA!';
+    else if (basqueteGame.phase === 'ANGLE') phaseLabel = '► TRAVE O ÂNGULO!';
+    ctx.fillText(phaseLabel, 300, 19);
+
+    // Countdown e Resultado Animado
+    if (basqueteGame.countdownTimer > 0) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px monospace';
+        let countNum = Math.ceil(basqueteGame.countdownTimer / 30);
+        let countText = countNum > 0 ? `${countNum}` : 'GO!';
+        let tw = ctx.measureText(countText).width;
+        ctx.fillText(countText, (canvas.width - tw) / 2, 150);
+    }
+
+    if (basqueteGame.phase === 'RESULT' && basqueteGame.resultText) {
+        ctx.font = 'bold 26px monospace';
+        let color = basqueteGame.shotResult === 'MISS' ? '#e74c3c' : '#2ecc71';
+        if (basqueteGame.shotResult === 'SWISH') color = '#f1c40f';
+        ctx.fillStyle = color;
+        let tw = ctx.measureText(basqueteGame.resultText).width;
+        ctx.fillText(basqueteGame.resultText, (canvas.width - tw) / 2, 130);
+    }
+}
+
 function drawArcoGame() {
-    // 1. Desenhar Cenário (Arena)
     if (imgArenaArco.complete && imgArenaArco.naturalWidth > 0) {
         ctx.drawImage(imgArenaArco, 0, 0, canvas.width, canvas.height);
     } else {
         ctx.fillStyle = "#66bb6a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // 2. Desenhar Alvos móveis
     arcoGame.targets.forEach(t => {
         ctx.fillStyle = "#5d4037"; ctx.fillRect(Math.floor(t.x - 2), Math.floor(t.y), 4, 20);
         ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
@@ -132,11 +511,9 @@ function drawArcoGame() {
 
         let frameW = imgArcoSprites.width / 8;
         let frameH = imgArcoSprites.height / 2;
-        
         let renderHeight = 110; 
         let renderWidth = renderHeight * (frameW / frameH);
 
-        // 3. Desenhar Flechas 
         let arrowSrcX = Math.floor(7 * frameW + (frameW * 0.3));
         let arrowSrcY = Math.floor(frameH * 0.2);                
         let arrowSrcW = Math.floor(frameW * 0.5);                
@@ -154,13 +531,10 @@ function drawArcoGame() {
             );
         });
 
-        // 4. Desenhar Personagens
-        
-        // --- ZORP ---
+        // ZORP
         let pRow = 0; 
         let pCol = arcoGame.playerState === 'SHOOT' ? 2 : Math.floor(arcoGame.playerFrame);
         
-        // Arredondamento absoluto para evitar sub-pixels (recortes)
         let pSx = Math.floor(pCol * frameW);
         let pSy = Math.floor(pRow * frameH);
         let pSw = Math.floor(frameW);
@@ -171,13 +545,9 @@ function drawArcoGame() {
         let pDw = Math.floor(renderWidth);
         let pDh = Math.floor(renderHeight);
 
-        ctx.drawImage(
-            imgArcoSprites, 
-            pSx, pSy, pSw, pSh, 
-            pDx, pDy, pDw, pDh
-        );
+        ctx.drawImage(imgArcoSprites, pSx, pSy, pSw, pSh, pDx, pDy, pDw, pDh);
 
-        // --- MESTRE ---
+        // MESTRE
         let mRow = 0; 
         let mCol = arcoGame.mestreState === 'SHOOT' ? 6 : 4 + Math.floor(arcoGame.mestreFrame); 
         
@@ -191,14 +561,9 @@ function drawArcoGame() {
         let mDw = Math.floor(renderWidth);
         let mDh = Math.floor(renderHeight);
 
-        ctx.drawImage(
-            imgArcoSprites, 
-            mSx, mSy, mSw, mSh, 
-            mDx, mDy, mDw, mDh
-        );
+        ctx.drawImage(imgArcoSprites, mSx, mSy, mSw, mSh, mDx, mDy, mDw, mDh);
         
     } else {
-        // Fallbacks caso a imagem falhe
         arcoGame.arrows.forEach(arr => {
             ctx.fillStyle = "#ecf0f1"; ctx.fillRect(Math.floor(arr.x - 1), Math.floor(arr.y), 2, 14);
         });
@@ -206,7 +571,6 @@ function drawArcoGame() {
         ctx.fillStyle = "#e74c3c"; ctx.fillRect(Math.floor(arcoGame.mestreX - 15), Math.floor(arcoGame.mestreY - 40), 30, 40);
     }
 
-    // 5. Placar superior
     ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0, 0, canvas.width, 30);
     ctx.fillStyle = "#f1c40f"; ctx.font = "bold 14px monospace";
     ctx.fillText(`ZORP: ${arcoGame.playerScore}/${arcoGame.targetScore}`, 20, 20);
@@ -221,30 +585,8 @@ function resetArco() {
     arcoGame.mestreScore = 0;
     arcoGame.playerX = 150;
     arcoGame.mestreX = canvas.width - 150;
-    
-    // Posiciona os dois perfeitamente na grama, atrás da cerca
-    arcoGame.playerY = canvas.height - 75; 
-    arcoGame.mestreY = canvas.height - 75;
-    
-    arcoGame.playerState = 'IDLE';
-    arcoGame.mestreState = 'IDLE';
-    arcoGame.playerShootCooldown = 0;
-    arcoGame.mestreShootCooldown = 0;
-    arcoGame.arrows = [];
-    arcoGame.targets = [];
-    arcoGame.spawnTimer = 0;
-}
-
-function resetArco() {
-    arcoGame.playerScore = 0;
-    arcoGame.mestreScore = 0;
-    arcoGame.playerX = 150;
-    arcoGame.mestreX = canvas.width - 150;
-    
-    // Trava os personagens na parte inferior da tela, logo acima do limite da cerca
     arcoGame.playerY = canvas.height - 40; 
     arcoGame.mestreY = canvas.height - 40;
-    
     arcoGame.playerState = 'IDLE';
     arcoGame.mestreState = 'IDLE';
     arcoGame.playerShootCooldown = 0;
@@ -262,7 +604,7 @@ function spawnArcoTarget() {
     
     arcoGame.targets.push({
         x: startX,
-        y: 60 + Math.random() * 80, // Alvos na parte superior
+        y: 60 + Math.random() * 80,
         radius: 18 - selectedSpeed * 2, 
         speedX: selectedSpeed * side,
         points: Math.round(selectedSpeed * 10)
@@ -272,14 +614,12 @@ function spawnArcoTarget() {
 function updateArco() {
     hintText.innerText = "[A D] MOVER | [ESPAÇO] ATIRAR FLECHA";
 
-    // 1. Geração de alvos
     arcoGame.spawnTimer++;
     if (arcoGame.spawnTimer > 45 && arcoGame.targets.length < 6) {
         spawnArcoTarget();
         arcoGame.spawnTimer = 0;
     }
 
-    // 2. Movimento e Animação do Jogador
     let isMoving = false;
     if (arcoGame.playerState !== 'SHOOT') {
         if (keys.a) {
@@ -293,11 +633,10 @@ function updateArco() {
         arcoGame.playerState = isMoving ? 'MOVE' : 'IDLE';
     }
 
-    // 3. Disparo do Jogador
     if (arcoGame.playerShootCooldown > 0) arcoGame.playerShootCooldown--;
     if (keys.space && arcoGame.playerShootCooldown === 0) {
         arcoGame.playerState = 'SHOOT';
-        arcoGame.playerShootTimer = 15; // Tempo que ele fica travado na pose de tiro
+        arcoGame.playerShootTimer = 15;
         
         arcoGame.arrows.push({
             x: arcoGame.playerX, 
@@ -308,7 +647,6 @@ function updateArco() {
         arcoGame.playerShootCooldown = 25;
     }
 
-    // Lógica de Animação do Jogador
     if (arcoGame.playerState === 'SHOOT') {
         arcoGame.playerShootTimer--;
         if (arcoGame.playerShootTimer <= 0) arcoGame.playerState = 'IDLE';
@@ -320,7 +658,6 @@ function updateArco() {
         }
     }
 
-    // 4. IA do Mestre
     if (arcoGame.mestreShootCooldown > 0) arcoGame.mestreShootCooldown--;
     let target = arcoGame.targets.find(t => t.x > canvas.width / 2);
     if (!target && arcoGame.targets.length > 0) target = arcoGame.targets[0];
@@ -334,7 +671,7 @@ function updateArco() {
             mestreMoving = true;
         } else if (arcoGame.mestreShootCooldown === 0) {
             arcoGame.mestreState = 'SHOOT';
-            arcoGame.mestreShootTimer = 15; // Tempo que o mestre fica na pose
+            arcoGame.mestreShootTimer = 15;
             
             arcoGame.arrows.push({
                 x: arcoGame.mestreX,
@@ -349,7 +686,6 @@ function updateArco() {
     arcoGame.mestreX = Math.max(canvas.width / 2 + 20, Math.min(canvas.width - 30, arcoGame.mestreX));
     if (arcoGame.mestreState !== 'SHOOT') arcoGame.mestreState = mestreMoving ? 'MOVE' : 'IDLE';
 
-    // Lógica de Animação do Mestre
     if (arcoGame.mestreState === 'SHOOT') {
         arcoGame.mestreShootTimer--;
         if (arcoGame.mestreShootTimer <= 0) arcoGame.mestreState = 'IDLE';
@@ -361,14 +697,12 @@ function updateArco() {
         }
     }
 
-    // 5. Atualização dos Alvos
     for (let i = arcoGame.targets.length - 1; i >= 0; i--) {
         let t = arcoGame.targets[i];
         t.x += t.speedX;
         if (t.x < -30 || t.x > canvas.width + 30) arcoGame.targets.splice(i, 1);
     }
 
-    // 6. Atualização de Flechas e Colisão
     for (let i = arcoGame.arrows.length - 1; i >= 0; i--) {
         let arr = arcoGame.arrows[i];
         arr.y += arr.speedY; 
@@ -391,7 +725,6 @@ function updateArco() {
         if (hit || arr.y < -10) arcoGame.arrows.splice(i, 1);
     }
 
-    // 7. Condição de Vitória
     if (arcoGame.playerScore >= arcoGame.targetScore) {
         insignias.arco = true;
         currentScene = "ILHA_ARCO";
@@ -405,7 +738,7 @@ function updateArco() {
 }
 
 // -------------------------------------------------------------
-// ASSETS E MAPEAMENTO EXPLICITO: ESQUI (2D TOP-DOWN)
+// ASSETS E MAPEAMENTO EXPLICITO: ESQUI
 // -------------------------------------------------------------
 const esquiAssets = {
     zorp: new Image(),
@@ -907,36 +1240,77 @@ function update() {
             if (player.y > 280) { currentScene = "ILHA_PINGPONG"; player.y = 15; }
         }
 
-        // Interação NPC
+      // Interação NPC
         let npcProximo = null;
         for (let npc of npcs) {
             if (npc.scene === currentScene && isColliding(player, {x: npc.x-15, y: npc.y-15, width: 46, height: 50})) {
-                npcProximo = npc; break;
+                npcProximo = npc; 
+                break;
             }
         }
         
         if (npcProximo) {
             dialogBox.classList.add("show");
+            
+            // Adiciona a instrução de atalho apenas se for um Mestre de minigame
             let extra = npcProximo.isMaster ? "<br><br>[ESPAÇO] INICIAR MINIGAME" : "";
             
+            // Pressionar 'E' ou 'ESPAÇO' mostra o diálogo
             if (keys.e || keys.space) { 
                 dialogText.innerHTML = npcProximo.msg + extra; 
 
-                if (npcProximo.isMaster === "JOGO_PINGPONG") {
-                    currentScene = "JOGO_PINGPONG";
-                    dialogBox.classList.remove("show");
-                    resetPingPong(true);
-                } else if (npcProximo.isMaster === "JOGO_ESQUI") { 
-                    currentScene = "JOGO_ESQUI";
-                    dialogBox.classList.remove("show");
-                    resetEsqui();
-                } else if (npcProximo.isMaster === "JOGO_ARCO") {
-                    currentScene = "JOGO_ARCO";
-                    dialogBox.classList.remove("show");
-                    resetArco();
-                } else if (npcProximo.isMaster) {
-                    dialogText.innerHTML = `> ${npcProximo.msg}<br><br><i>(Minigame em construcao!)</i>`;
-                }
+                // Transição de cena ocorre APENAS se apertar ESPAÇO e o NPC for um Mestre
+              if (keys.e || keys.space) {
+    dialogText.innerHTML = npcProximo.msg + extra;
+}
+
+/*
+ * INICIAR MINIGAME
+ * E OU ESPAÇO FUNCIONAM COMO CONFIRMAÇÃO
+ */
+if (npcProximo) {
+    dialogBox.classList.add("show");
+
+    const extra = npcProximo.isMaster
+        ? "<br><br>[E] OU [ESPAÇO] PARA INICIAR"
+        : "";
+
+    if (npcProximo.isMaster && (keys.e || keys.space)) {
+
+        const jogo = npcProximo.isMaster;
+
+        if (jogo === "JOGO_PINGPONG") {
+            currentScene = "JOGO_PINGPONG";
+            resetPingPong(true);
+
+        } else if (jogo === "JOGO_ARCO") {
+            currentScene = "JOGO_ARCO";
+            resetArco();
+
+        } else if (jogo === "JOGO_BASQUETE") {
+            currentScene = "JOGO_BASQUETE";
+            resetBasquete();
+        }
+
+        dialogBox.classList.remove("show");
+
+        keys.e = false;
+        keys.space = false;
+
+    } else if (keys.e || keys.space) {
+
+        dialogText.innerHTML = npcProximo.msg + extra;
+
+    } else {
+
+        dialogText.innerHTML = npcProximo.isMaster
+            ? "> (Pressione [E] ou [ESPAÇO] para iniciar)"
+            : "> (Pressione [E] para conversar)";
+    }
+
+} else {
+    dialogBox.classList.remove("show");
+}
             } else { 
                 dialogText.innerHTML = "> (Pressione [E] para conversar)"; 
             }
@@ -950,6 +1324,8 @@ function update() {
         updateEsqui();
     } else if (currentScene === "JOGO_ARCO") {
         updateArco();
+    } else if (currentScene === "JOGO_BASQUETE") {
+        updateBasquete();
     }
 }
 
@@ -1404,6 +1780,7 @@ function draw() {
     else if (currentScene === "JOGO_PINGPONG") drawPingPongGame();
     else if (currentScene === "JOGO_ESQUI") drawEsquiGame();
     else if (currentScene === "JOGO_ARCO") drawArcoGame();
+    else if (currentScene === "JOGO_BASQUETE") drawBasqueteGame();
     
     if (!currentScene.startsWith("JOGO_")) {
         drawSceneObstacles();
@@ -1413,7 +1790,7 @@ function draw() {
         drawPlayer();
     }
     
-    if (currentScene !== "JOGO_ESQUI" && currentScene !== "JOGO_ARCO") {
+    if (currentScene !== "JOGO_ESQUI" && currentScene !== "JOGO_ARCO" && currentScene !== "JOGO_BASQUETE") {
         drawHUD();
     }
 }

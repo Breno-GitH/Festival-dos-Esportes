@@ -578,174 +578,106 @@ function updateBasquete() {
 }
 
 // Configuração da grade da imagem Mestre_basq.png (10 colunas x 5 linhas)
-// Configuração da grade da imagem Mestre_basq.png (10 colunas x 5 linhas)
 const MESTRE_COLS = 10;
 const MESTRE_ROWS = 5;
 
-function drawBasqueteGame(ctx) {
-    // Limpa o canvas para o frame atual
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // --- 1. CORREÇÃO DO SPRITE DO ZORP (Grade 10x5) ---
-    const zorpCols = 10;
-    const zorpRows = 5;
-    
-    // Calcula a largura e altura exatas de CADA frame individualmente
-    const zorpFrameW = imgZorpBasquete.width / zorpCols;
-    const zorpFrameH = imgZorpBasquete.height / zorpRows;
-    
-    // CORREÇÃO: Utilizando basqueteGame.playerFrame ao invés de zorpCurrentFrame
-    const zorpSourceX = (basqueteGame.playerFrame % zorpCols) * zorpFrameW;
-    const zorpSourceY = Math.floor(basqueteGame.playerFrame / zorpCols) * zorpFrameH;
-
-    // Renderiza o Zorp na quadra (Usando basqueteGame.playerX e playerY)
-    ctx.drawImage(
-        imgZorpBasquete,
-        zorpSourceX, zorpSourceY, 
-        zorpFrameW, zorpFrameH,   
-        basqueteGame.playerX, basqueteGame.playerY,             
-        zorpFrameW, zorpFrameH    
-    );
-
-
-    // --- 2. CORREÇÃO DOS ESTADOS DO MESTRE ---
-    // CORREÇÃO: Utilizando MESTRE_COLS e MESTRE_ROWS definidos globalmente
-    const mestreFrameW = imgMestreBasquete.width / MESTRE_COLS;
-    const mestreFrameH = imgMestreBasquete.height / MESTRE_ROWS;
-    
-    let mestreSourceX = 0;
-    let mestreSourceY = 0;
-
-    // CORREÇÃO: Utilizando basqueteGame.mestreState e basqueteGame.mestreFrame
-    switch(basqueteGame.mestreState) {
-        case 'IDLE':
-            mestreSourceX = 0; 
-            mestreSourceY = 0; 
-            break;
-        case 'DEFEND':
-            mestreSourceX = (basqueteGame.mestreFrame % MESTRE_COLS) * mestreFrameW;
-            mestreSourceY = Math.floor(basqueteGame.mestreFrame / MESTRE_COLS) * mestreFrameH;
-            break;
-        case 'WIN':
-            mestreSourceX = (basqueteGame.mestreFrame % MESTRE_COLS) * mestreFrameW;
-            mestreSourceY = Math.floor(basqueteGame.mestreFrame / MESTRE_COLS) * mestreFrameH;
-            break;
-        case 'LOSE':
-            mestreSourceX = (basqueteGame.mestreFrame % MESTRE_COLS) * mestreFrameW;
-            mestreSourceY = Math.floor(basqueteGame.mestreFrame / MESTRE_COLS) * mestreFrameH;
-            break;
-        default:
-            mestreSourceX = 0;
-            mestreSourceY = 0;
+function drawBasqueteGame() {
+    // 1. Cenário
+    if (imgArenaBasquete.complete && imgArenaBasquete.naturalWidth > 0) {
+        ctx.drawImage(imgArenaBasquete, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c68642'; ctx.fillRect(0, 180, canvas.width, 120);
+        ctx.strokeStyle = '#e8a95b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(canvas.width, 180); ctx.stroke();
     }
 
-    // Renderiza o Mestre na quadra
-    ctx.drawImage(
-        imgMestreBasquete,
-        mestreSourceX, mestreSourceY,
-        mestreFrameW, mestreFrameH,
-        basqueteGame.mestreX, basqueteGame.mestreY,
-        mestreFrameW, mestreFrameH
-    );
+    ctx.imageSmoothingEnabled = false;
 
-    // --- 3. RENDERIZAR A BOLA ---
-    ctx.fillStyle = "#e67e22";
-    ctx.beginPath();
-    ctx.arc(basqueteGame.ballX, basqueteGame.ballY, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#d35400";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    // 2. Desenho da CESTA / ARO (Extraída do Sprite Sheet na 5ª linha)
+    if (imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+        const frameW = imgMestreBasquete.width / MESTRE_COLS;
+        const frameH = imgMestreBasquete.height / MESTRE_ROWS;
 
-    // --- 5. Interface: BARRA DE FORÇA (Esquerda, Vertical) ---
-    // CORREÇÃO: Este bloco agora está corretamente DENTRO da função
-    let barX = 30, barY = 40, barW = 22, barH = 190;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-    
-    let gradient = ctx.createLinearGradient(0, barY + barH, 0, barY);
-    gradient.addColorStop(0, '#e74c3c');
-    gradient.addColorStop(0.3, '#f39c12');
-    gradient.addColorStop(0.5, '#2ecc71');
-    gradient.addColorStop(0.7, '#f39c12');
-    gradient.addColorStop(1, '#e74c3c');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(barX, barY, barW, barH);
-    
-    let sweetY1 = barY + barH - (basqueteGame.powerSweetMax / 100) * barH;
-    let sweetY2 = barY + barH - (basqueteGame.powerSweetMin / 100) * barH;
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeRect(barX, sweetY1, barW, sweetY2 - sweetY1);
-    ctx.setLineDash([]);
-    
-    let powerY = (basqueteGame.powerLocked >= 0)
-        ? barY + barH - (basqueteGame.powerLocked / 100) * barH
-        : barY + barH - (basqueteGame.powerValue / 100) * barH;
+        // Recorte da Cesta (Linha 4, Coluna ~3.7)
+        const cestaSx = Math.floor(3.65 * frameW);
+        const cestaSy = Math.floor(4 * frameH);
+        const cestaSw = Math.floor(frameW * 0.85);
+        const cestaSh = Math.floor(frameH * 0.85);
+
+        const cestaWidth = 32;
+        const cestaHeight = 32;
         
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(barX - 4, powerY - 2, barW + 8, 4);
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText('FORÇA', barX - 2, barY - 8);
-
-    // --- 6. Interface: BARRA DE ÂNGULO (Inferior, Horizontal) ---
-    let aBarX = 80, aBarY = 260, aBarW = 280, aBarH = 18;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(aBarX - 2, aBarY - 2, aBarW + 4, aBarH + 4);
-    
-    let aGradient = ctx.createLinearGradient(aBarX, 0, aBarX + aBarW, 0);
-    aGradient.addColorStop(0, '#e74c3c');
-    aGradient.addColorStop(0.3, '#f39c12');
-    aGradient.addColorStop(0.5, '#2ecc71');
-    aGradient.addColorStop(0.7, '#f39c12');
-    aGradient.addColorStop(1, '#e74c3c');
-    ctx.fillStyle = aGradient;
-    ctx.fillRect(aBarX, aBarY, aBarW, aBarH);
-    
-    let sweetX1 = aBarX + (basqueteGame.angleSweetMin / 100) * aBarW;
-    let sweetX2 = aBarX + (basqueteGame.angleSweetMax / 100) * aBarW;
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeRect(sweetX1, aBarY, sweetX2 - sweetX1, aBarH);
-    ctx.setLineDash([]);
-    
-    let angleX = (basqueteGame.angleLocked >= 0)
-        ? aBarX + (basqueteGame.angleLocked / 100) * aBarW
-        : aBarX + (basqueteGame.angleValue / 100) * aBarW;
-        
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(angleX - 2, aBarY - 4, 4, aBarH + 8);
-    ctx.fillText('ÂNGULO', aBarX + aBarW / 2 - 20, aBarY + aBarH + 12);
-
-    // --- 7. HUD do Placar ---
-    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, 28);
-    ctx.font = 'bold 13px monospace';
-    ctx.fillStyle = '#f1c40f'; ctx.fillText(`PONTOS: ${basqueteGame.playerScore}`, 15, 19);
-    ctx.fillStyle = '#3498db'; ctx.fillText(`ARREMESSO: ${basqueteGame.round}/${basqueteGame.maxRounds}`, 160, 19);
-    
-    ctx.fillStyle = '#ffffff';
-    let phaseLabel = '';
-    if (basqueteGame.phase === 'POWER') phaseLabel = '► TRAVE A FORÇA!';
-    else if (basqueteGame.phase === 'ANGLE') phaseLabel = '► TRAVE O ÂNGULO!';
-    ctx.fillText(phaseLabel, 300, 19);
-
-    // Countdown e Resultado Animado
-    if (basqueteGame.countdownTimer > 0) {
-        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px monospace';
-        let countNum = Math.ceil(basqueteGame.countdownTimer / 30);
-        let countText = countNum > 0 ? `${countNum}` : 'GO!';
-        let tw = ctx.measureText(countText).width;
-        ctx.fillText(countText, (canvas.width - tw) / 2, 150);
+        // Posição ajustada abaixo da tabela da quadra
+        ctx.drawImage(
+            imgMestreBasquete,
+            cestaSx, cestaSy, cestaSw, cestaSh,
+            225 - cestaWidth / 2, 45, cestaWidth, cestaHeight
+        );
     }
 
-    if (basqueteGame.phase === 'RESULT' && basqueteGame.resultText) {
-        ctx.font = 'bold 26px monospace';
-        let color = basqueteGame.shotResult === 'MISS' ? '#e74c3c' : '#2ecc71';
-        if (basqueteGame.shotResult === 'SWISH') color = '#f1c40f';
-        ctx.fillStyle = color;
-        let tw = ctx.measureText(basqueteGame.resultText).width;
-        ctx.fillText(basqueteGame.resultText, (canvas.width - tw) / 2, 130);
+    // 3. Personagens (Zorp e Mestre com recorte e proporções corrigidos)
+    if (imgZorpBasquete.complete && imgZorpBasquete.naturalWidth > 0 &&
+        imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+
+        const renderH = 75; // Altura proporcional ajustada para a quadra
+
+        // --- ZORP BASQUETE ---
+        const zorpFrameW = imgZorpBasquete.width / 10;
+        const zorpFrameH = imgZorpBasquete.height / 5;
+        const zorpRenderW = renderH * (zorpFrameW / zorpFrameH);
+
+        let pCol = 0;
+        if (basqueteGame.playerState === 'PREP') pCol = 1;
+        else if (basqueteGame.playerState === 'SHOOT') pCol = 2;
+        else if (basqueteGame.playerState === 'WIN') pCol = 3 + basqueteGame.playerFrame;
+        else if (basqueteGame.playerState === 'LOSE') pCol = 5;
+
+        ctx.drawImage(
+            imgZorpBasquete,
+            Math.floor(pCol * zorpFrameW), 0, Math.floor(zorpFrameW), Math.floor(zorpFrameH),
+            Math.floor(basqueteGame.playerX - zorpRenderW / 2), Math.floor(basqueteGame.playerY - renderH),
+            Math.floor(zorpRenderW), Math.floor(renderH)
+        );
+
+        // --- MESTRE DO BASQUETE (Grade 10x5) ---
+        const mestreFrameW = imgMestreBasquete.width / MESTRE_COLS;
+        const mestreFrameH = imgMestreBasquete.height / MESTRE_ROWS;
+        const mestreRenderW = renderH * (mestreFrameW / mestreFrameH);
+
+        let mCol = 0, mRow = 0;
+        if (basqueteGame.mestreState === 'DEFEND') { mCol = 1; mRow = 0; }
+        else if (basqueteGame.mestreState === 'WIN') { mCol = 6 + basqueteGame.mestreFrame; mRow = 3; }
+        else if (basqueteGame.mestreState === 'LOSE') { mCol = 0; mRow = 0; }
+
+        ctx.drawImage(
+            imgMestreBasquete,
+            Math.floor(mCol * mestreFrameW), Math.floor(mRow * mestreFrameH),
+            Math.floor(mestreFrameW), Math.floor(mestreFrameH),
+            Math.floor(basqueteGame.mestreX - mestreRenderW / 2), Math.floor(basqueteGame.mestreY - renderH),
+            Math.floor(mestreRenderW), Math.floor(renderH)
+        );
     }
-} // <-- A CHAVE DE FECHAMENTO AGORA ESTÁ NO LUGAR CORRETO
+
+    // 4. Desenho da BOLA DE BASQUETE (Extraída do Sprite Sheet na 5ª linha)
+    if (imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+        const frameW = imgMestreBasquete.width / MESTRE_COLS;
+        const frameH = imgMestreBasquete.height / MESTRE_ROWS;
+
+        // Recorte da Bola
+        const ballSx = Math.floor(3.68 * frameW);
+        const ballSy = Math.floor(4 * frameH);
+        const ballSw = Math.floor(frameW * 0.45);
+        const ballSh = Math.floor(frameH * 0.45);
+
+        const ballSize = 18;
+        ctx.drawImage(
+            imgMestreBasquete,
+            ballSx, ballSy, ballSw, ballSh,
+            Math.floor(basqueteGame.ballX - ballSize / 2), Math.floor(basqueteGame.ballY - ballSize / 2),
+            ballSize, ballSize
+        );
+    }
 
     // 5. Interface: BARRA DE FORÇA (Esquerda, Vertical)
     let barX = 30, barY = 40, barW = 22, barH = 190;

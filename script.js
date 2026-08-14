@@ -19,6 +19,25 @@ const insignias = {
 };
 
 // -------------------------------------------------------------
+// CONFIGURAÇÃO DE SPRITES
+// -------------------------------------------------------------
+const SPRITES_CONFIG = {
+    pedras: [
+        { x: 0.665, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Vermelha
+        { x: 0.712, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Laranja
+        { x: 0.762, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Amarela
+        { x: 0.712, y: 0.890, w: 0.036, h: 0.058 }  // Pedra Azul
+    ],
+    zorp: {
+        idle: { x: 0.90, y: 0.52, w: 0.08, h: 0.22 },
+        subindo: [
+            { x: 0.17, y: 0.52, w: 0.08, h: 0.22 },
+            { x: 0.25, y: 0.52, w: 0.08, h: 0.22 }
+        ]
+    }
+}   
+
+// -------------------------------------------------------------
 // 1. CARREGAMENTO DAS IMAGENS
 // -------------------------------------------------------------
 const zorpImg = new Image(); zorpImg.src = "zorp.png";
@@ -55,7 +74,7 @@ const imgEscaladaSprites = new Image();
 imgEscaladaSprites.src = "Sprites_Escalada.png";
 
 // -------------------------------------------------------------
-// 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO (GERAL E PING PONG)
+// 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO
 // -------------------------------------------------------------
 const player = { 
     x: 225, 
@@ -81,8 +100,41 @@ const pingPong = {
     playerScore: 0, opponentScore: 0, maxScore: 3,
     playerAction: "IDLE", opponentAction: "IDLE",  
     playerHitTimer: 0, opponentHitTimer: 0,
-    power: 0, maxPower: 100, isPowerActive: false
+    power: 0, maxPower: 100, isPowerActive: false,
+    gameState: 'TUTORIAL',
+    win: false
 };
+
+// -------------------------------------------------------------
+// TELAS DE INTERFACE (UI OVERLAYS)
+// -------------------------------------------------------------
+function drawOverlayScreen(title, lines, titleColor = "#f1c40f") {
+    // Fundo escuro translúcido
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.textAlign = "center";
+    
+    // Título
+    ctx.fillStyle = titleColor;
+    ctx.font = "bold 26px monospace";
+    ctx.fillText(title, canvas.width / 2, 80);
+    
+    // Linhas de explicação
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px monospace";
+    lines.forEach((line, index) => {
+        ctx.fillText(line, canvas.width / 2, 130 + (index * 25));
+    });
+    
+    // Instrução para continuar piscando
+    ctx.fillStyle = (Date.now() % 1000 < 500) ? "#ffffff" : "#f1c40f"; 
+    ctx.font = "bold 14px monospace";
+    ctx.fillText("[Pressione ESPAÇO para continuar]", canvas.width / 2, canvas.height - 40);
+    
+    ctx.textAlign = "left"; // Reset
+}
+
 
 // -------------------------------------------------------------
 // MINIGAME ESCALADA
@@ -93,24 +145,34 @@ const escaladaGame = {
     maxEstamina: 100,
     
     playerX: 225,
-    playerY: 200,
-    velocidadeX: 0,
-    velocidadeY: 0,
-    isJumping: false,
+    playerY: 220,
     pedraAtual: null,
-    tempoSegurando: 0,
+    
+    emPulo: false,
+    puloProgresso: 0,
+    puloVelocidade: 0.08,
+    startX: 0,
+    startY: 0,
+    targetX: 0,
+    targetY: 0,
+    targetPedra: null,
     
     pedrasGeradas: [],
-    itensCaindo: [],
-    
-    keys: { w: false, a: false, d: false, space: false },
+    obstaculos: [],
     alturaAtual: 0,
-    alturaTotal: 5000,
+    alturaTotal: 1200, 
     
+    morteMotivo: "",
+    isGameOver: false,
+    gameOverTimer: 0,
+
     minimapaX: 20,
     minimapaY: 50,
     minimapaLargura: 10,
-    minimapaAltura: 300
+    minimapaAltura: 200,
+    
+    gameState: 'TUTORIAL',
+    win: false
 };
 
 function resetEscalada() {
@@ -118,41 +180,204 @@ function resetEscalada() {
     escaladaGame.estamina = 100;
     escaladaGame.playerX = 225;
     escaladaGame.playerY = 220;
-    escaladaGame.velocidadeX = 0;
-    escaladaGame.velocidadeY = 0;
-    escaladaGame.isJumping = false;
-    escaladaGame.pedraAtual = null;
-    escaladaGame.tempoSegurando = 0;
     escaladaGame.alturaAtual = 0;
+    escaladaGame.emPulo = false;
+    escaladaGame.puloProgresso = 0;
+    escaladaGame.isGameOver = false;
+    escaladaGame.morteMotivo = "";
+    escaladaGame.obstaculos = [];
+    
     escaladaGame.pedrasGeradas = [
         { x: 225, y: 220, r: 15 },
-        { x: 180, y: 160, r: 15 },
-        { x: 270, y: 120, r: 15 },
-        { x: 210, y: 60, r: 15 }
+        { x: 170, y: 160, r: 15 },
+        { x: 280, y: 160, r: 15 },
+        { x: 225, y: 100, r: 15 }
     ];
     escaladaGame.pedraAtual = escaladaGame.pedrasGeradas[0];
-    escaladaGame.itensCaindo = [];
+    escaladaGame.gameState = 'TUTORIAL';
 }
 
 function tentarPular() {
-    if (escaladaGame.estamina >= 20 && !escaladaGame.isJumping) {
-        escaladaGame.estamina -= 20; 
-        escaladaGame.isJumping = true;
-        escaladaGame.pedraAtual = null;
+    if (escaladaGame.emPulo || escaladaGame.estamina < 12 || escaladaGame.isGameOver) return;
 
-        if (escaladaGame.keys.w && escaladaGame.keys.a) {
-            escaladaGame.velocidadeX = -5;
-            escaladaGame.velocidadeY = -10;
-        } else if (escaladaGame.keys.w && escaladaGame.keys.d) {
-            escaladaGame.velocidadeX = 5;
-            escaladaGame.velocidadeY = -10;
-        } else if (escaladaGame.keys.w) {
-            escaladaGame.velocidadeX = 0;
-            escaladaGame.velocidadeY = -12;
-        } else {
-            escaladaGame.velocidadeY = -10;
+    let dirX = 0;
+    if (keys.a) dirX = -1;
+    if (keys.d) dirX = 1;
+
+    let melhorPedra = null;
+    let menorDistancia = Infinity;
+
+    escaladaGame.pedrasGeradas.forEach(p => {
+        if (p === escaladaGame.pedraAtual) return;
+
+        let dx = p.x - escaladaGame.playerX;
+        let dy = p.y - escaladaGame.playerY;
+
+        if (dy < 5) {
+            let direcaoValida = false;
+
+            if (dirX < 0 && dx < -10) direcaoValida = true;
+            else if (dirX > 0 && dx > 10) direcaoValida = true;
+            else if (dirX === 0 && Math.abs(dx) <= 80) direcaoValida = true;
+
+            if (direcaoValida) {
+                let dist = Math.hypot(dx, dy);
+                if (dist < menorDistancia && dist <= 220) {
+                    menorDistancia = dist;
+                    melhorPedra = p;
+                }
+            }
+        }
+    });
+
+    if (melhorPedra) {
+        escaladaGame.estamina -= 12;
+        escaladaGame.emPulo = true;
+        escaladaGame.puloProgresso = 0;
+        escaladaGame.startX = escaladaGame.playerX;
+        escaladaGame.startY = escaladaGame.playerY;
+        escaladaGame.targetX = melhorPedra.x;
+        escaladaGame.targetY = melhorPedra.y;
+        escaladaGame.targetPedra = melhorPedra;
+    }
+}
+
+function atualizarAnimacaoPulo() {
+    if (!escaladaGame.emPulo) return;
+
+    escaladaGame.puloProgresso += escaladaGame.puloVelocidade;
+
+    if (escaladaGame.puloProgresso >= 1) {
+        escaladaGame.puloProgresso = 1;
+        escaladaGame.emPulo = false;
+        escaladaGame.playerX = escaladaGame.targetX;
+        escaladaGame.playerY = escaladaGame.targetY;
+        escaladaGame.pedraAtual = escaladaGame.targetPedra;
+    } else {
+        const t = escaladaGame.puloProgresso;
+        escaladaGame.playerX = escaladaGame.startX + (escaladaGame.targetX - escaladaGame.startX) * t;
+
+        const alturaArco = 30; 
+        const interpolacaoY = escaladaGame.startY + (escaladaGame.targetY - escaladaGame.startY) * t;
+        escaladaGame.playerY = interpolacaoY - Math.sin(t * Math.PI) * alturaArco;
+    }
+}
+
+function atualizarCameraEMundo() {
+    const limiteTelaY = 180;
+
+    if (escaladaGame.playerY < limiteTelaY) {
+        const diferenca = limiteTelaY - escaladaGame.playerY;
+        escaladaGame.playerY = limiteTelaY;
+        escaladaGame.alturaAtual += diferenca;
+
+        for (let i = 0; i < escaladaGame.pedrasGeradas.length; i++) {
+            escaladaGame.pedrasGeradas[i].y += diferenca;
+        }
+
+        if (escaladaGame.emPulo) {
+            escaladaGame.startY += diferenca;
+            escaladaGame.targetY += diferenca;
         }
     }
+}
+
+function gerarNovaCamadaDePedras() {
+    let menorY = escaladaGame.pedrasGeradas.length > 0 
+        ? Math.min(...escaladaGame.pedrasGeradas.map(p => p.y)) 
+        : 180;
+        
+    for (let i = 0; i < 2; i++) {
+        escaladaGame.pedrasGeradas.push({
+            x: 60 + (i * 160) + (Math.random() * 60 - 30),
+            y: menorY - 45 - Math.random() * 20,
+            r: 15
+        });
+    }
+}
+
+function gerenciarPedras() {
+    const alturaTela = canvas.height || 300;
+    escaladaGame.pedrasGeradas = escaladaGame.pedrasGeradas.filter(pedra => pedra.y < alturaTela + 50);
+
+    if (escaladaGame.pedrasGeradas.length === 0) {
+        gerarNovaCamadaDePedras();
+        return;
+    }
+
+    let menorY = Math.min(...escaladaGame.pedrasGeradas.map(p => p.y));
+    if (menorY > 30) {
+        gerarNovaCamadaDePedras();
+    }
+}
+
+function voltarMundoReal() {
+    finalizarMinigame("DERROTA");
+}
+
+function resetarPosicaoJogador() {
+    escaladaGame.playerX = 225;
+    escaladaGame.playerY = 220;
+    escaladaGame.emPulo = false;
+    escaladaGame.estamina = 100;
+}
+
+function checarVitoriaEscalada() {
+    if (escaladaGame.alturaAtual >= escaladaGame.alturaTotal) {
+        escaladaGame.alturaAtual = escaladaGame.alturaTotal;
+        finalizarMinigame("VITORIA"); 
+    }
+}
+
+function finalizarMinigame(resultado) {
+    escaladaGame.gameState = 'GAMEOVER';
+    escaladaGame.win = (resultado === "VITORIA");
+    if (resultado === "VITORIA") {
+        insignias.escalada = true;
+        dialogText.innerHTML = "> MESTRE DA ESCALADA: Incrível! Você alcançou o topo do monte!";
+    } else {
+        dialogText.innerHTML = "> MESTRE DA ESCALADA: Gerencie melhor sua estamina para continuar subindo.";
+    }
+}
+
+function updateEscaladaGame() {
+    if (escaladaGame.gameState === 'TUTORIAL') {
+        if (keys.space) { escaladaGame.gameState = 'PLAYING'; keys.space = false; }
+        return;
+    }
+    
+    if (escaladaGame.gameState === 'GAMEOVER') {
+        if (keys.space) { 
+            currentScene = "ILHA_ESCALADA"; 
+            keys.space = false; 
+            dialogBox.classList.add("show");
+        }
+        return;
+    }
+
+    if (escaladaGame.isGameOver) return;
+
+    hintText.innerText = "[W A D] DIREÇÃO + [ESPAÇO] PARA PULAR DE PEDRA EM PEDRA";
+
+    if (keys.space && !escaladaGame.emPulo) {
+        tentarPular();
+        keys.space = false;
+    }
+
+    atualizarAnimacaoPulo();
+
+    if (!escaladaGame.emPulo && escaladaGame.estamina < escaladaGame.maxEstamina) {
+        escaladaGame.estamina = Math.min(escaladaGame.maxEstamina, escaladaGame.estamina + 0.1);
+    }
+
+    // Exemplo simplificado para simular falha por estamina (para acionar derrota)
+    if (escaladaGame.estamina <= 0) {
+        finalizarMinigame("DERROTA");
+    }
+
+    atualizarCameraEMundo();
+    gerenciarPedras();
+    checarVitoriaEscalada();
 }
 
 function drawMiniMap(ctx) {
@@ -164,170 +389,81 @@ function drawMiniMap(ctx) {
         escaladaGame.minimapaAltura
     );
 
-    const progresso = escaladaGame.alturaAtual / escaladaGame.alturaTotal;
+    const progresso = Math.min(1, escaladaGame.alturaAtual / escaladaGame.alturaTotal);
     const posicaoJogadorY = escaladaGame.minimapaY + escaladaGame.minimapaAltura - (progresso * escaladaGame.minimapaAltura);
 
-    ctx.fillStyle = "lime";
-    ctx.fillRect(escaladaGame.minimapaX - 5, posicaoJogadorY, 20, 10);
+    ctx.fillStyle = "#2ecc71";
+    ctx.fillRect(escaladaGame.minimapaX - 5, posicaoJogadorY, 20, 6);
 
-    ctx.fillStyle = "gold";
-    ctx.fillRect(escaladaGame.minimapaX - 5, escaladaGame.minimapaY, 20, 10);
-}
-
-function checarVitoriaEscalada() {
-    if (escaladaGame.alturaAtual >= escaladaGame.alturaTotal) {
-        escaladaGame.alturaAtual = escaladaGame.alturaTotal;
-        finalizarMinigame("VITORIA"); 
-    } else if (escaladaGame.vida <= 0) {
-        finalizarMinigame("DERROTA");
-    }
-}
-
-function finalizarMinigame(resultado) {
-    if (resultado === "VITORIA") {
-        insignias.escalada = true;
-        currentScene = "ILHA_ESCALADA";
-        dialogText.innerHTML = "> MESTRE DA ESCALADA: Incrível! Você alcançou o topo do monte!";
-        dialogBox.classList.add("show");
-    } else {
-        currentScene = "ILHA_ESCALADA";
-        dialogText.innerHTML = "> MESTRE DA ESCALADA: Você caiu! Gerencie sua estamina antes de saltar.";
-        dialogBox.classList.add("show");
-    }
-}
-
-function atualizarCameraEMundo() {
-    const limiteTelaY = 300; 
-
-    if (escaladaGame.playerY < limiteTelaY) {
-        const diferenca = limiteTelaY - escaladaGame.playerY;
-        escaladaGame.playerY = limiteTelaY;
-        escaladaGame.alturaAtual += diferenca;
-
-        for (let i = 0; i < escaladaGame.pedrasGeradas.length; i++) {
-            escaladaGame.pedrasGeradas[i].y += diferenca; 
-        }
-
-        for (let i = 0; i < escaladaGame.itensCaindo.length; i++) {
-            escaladaGame.itensCaindo[i].y += diferenca;
-        }
-    }
-}
-
-function precisaDeMaisPedras() {
-    if (escaladaGame.pedrasGeradas.length === 0) return true;
-    let menorY = Math.min(...escaladaGame.pedrasGeradas.map(p => p.y));
-    return menorY > 40;
-}
-
-function gerarNovaCamadaDePedras() {
-    let ultimoY = escaladaGame.pedrasGeradas.length > 0 
-        ? Math.min(...escaladaGame.pedrasGeradas.map(p => p.y)) 
-        : 200;
-        
-    for (let i = 0; i < 2; i++) {
-        escaladaGame.pedrasGeradas.push({
-            x: 60 + Math.random() * 330,
-            y: ultimoY - 50 - Math.random() * 30,
-            r: 15
-        });
-    }
-}
-
-function gerenciarPedras() {
-    const alturaTela = 600;
-
-    escaladaGame.pedrasGeradas = escaladaGame.pedrasGeradas.filter(pedra => {
-        return pedra.y < alturaTela + 50;
-    });
-
-    if (precisaDeMaisPedras()) {
-        gerarNovaCamadaDePedras();
-    }
-}
-
-function updateEscalada() {
-    hintText.innerText = "[W A D] DIREÇÃO + [ESPAÇO] PULAR";
-
-    escaladaGame.keys.w = keys.w;
-    escaladaGame.keys.a = keys.a;
-    escaladaGame.keys.d = keys.d;
-    escaladaGame.keys.space = keys.space;
-
-    if (keys.space && !escaladaGame.isJumping && escaladaGame.pedraAtual) {
-        tentarPular();
-        keys.space = false;
-    }
-
-    if (escaladaGame.isJumping) {
-        escaladaGame.playerX += escaladaGame.velocidadeX;
-        escaladaGame.playerY += escaladaGame.velocidadeY;
-        escaladaGame.velocidadeY += 0.6; // Gravidade
-
-        for (let pedra of escaladaGame.pedrasGeradas) {
-            let dist = Math.hypot(escaladaGame.playerX - pedra.x, escaladaGame.playerY - pedra.y);
-            if (dist < pedra.r + 12 && escaladaGame.velocidadeY > 0) {
-                escaladaGame.isJumping = false;
-                escaladaGame.pedraAtual = pedra;
-                escaladaGame.velocidadeX = 0;
-                escaladaGame.velocidadeY = 0;
-                escaladaGame.playerX = pedra.x;
-                escaladaGame.playerY = pedra.y - 10;
-                escaladaGame.estamina = Math.min(escaladaGame.maxEstamina, escaladaGame.estamina + 15);
-                break;
-            }
-        }
-
-        if (escaladaGame.playerY > canvas.height + 40) {
-            escaladaGame.vida--;
-            if (escaladaGame.vida <= 0) {
-                finalizarMinigame("DERROTA");
-            } else {
-                let pedrasVisiveis = escaladaGame.pedrasGeradas.filter(p => p.y > 0 && p.y < canvas.height);
-                if (pedrasVisiveis.length > 0) {
-                    let p = pedrasVisiveis[0];
-                    escaladaGame.playerX = p.x;
-                    escaladaGame.playerY = p.y - 10;
-                    escaladaGame.pedraAtual = p;
-                } else {
-                    escaladaGame.playerX = 225;
-                    escaladaGame.playerY = 200;
-                }
-                escaladaGame.isJumping = false;
-                escaladaGame.velocidadeX = 0;
-                escaladaGame.velocidadeY = 0;
-            }
-        }
-    } else if (escaladaGame.pedraAtual) {
-        escaladaGame.estamina = Math.min(escaladaGame.maxEstamina, escaladaGame.estamina + 0.15);
-    } else {
-        escaladaGame.isJumping = true;
-    }
-
-    atualizarCameraEMundo();
-    gerenciarPedras();
-    checarVitoriaEscalada();
+    ctx.fillStyle = "#f1c40f";
+    ctx.fillRect(escaladaGame.minimapaX - 5, escaladaGame.minimapaY, 20, 6);
 }
 
 function drawEscaladaGame() {
+    const cameraY = escaladaGame.playerY - canvas.height * 0.6;
+
     ctx.fillStyle = "#3e2723";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    escaladaGame.pedrasGeradas.forEach(p => {
-        ctx.fillStyle = (escaladaGame.pedraAtual === p) ? "#f1c40f" : "#8d6e63";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#4e342e";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+    const imgPronta = imgEscaladaSprites.complete && imgEscaladaSprites.naturalWidth > 0;
+    const iw = imgEscaladaSprites.width;
+    const ih = imgEscaladaSprites.height;
+
+    // Desenhar Pedras
+    escaladaGame.pedrasGeradas.forEach((p, index) => {
+        const renderY = p.y - cameraY;
+
+        if (renderY + p.r > -50 && renderY - p.r < canvas.height + 50) {
+            if (imgPronta) {
+                const spritePedra = SPRITES_CONFIG.pedras[index % SPRITES_CONFIG.pedras.length];
+                const renderSize = p.r * 2.2;
+
+                if (escaladaGame.pedraAtual === p || escaladaGame.targetPedra === p) {
+                    ctx.shadowColor = "#f1c40f";
+                    ctx.shadowBlur = 12;
+                }
+
+                ctx.drawImage(
+                    imgEscaladaSprites,
+                    spritePedra.x * iw, spritePedra.y * ih, spritePedra.w * iw, spritePedra.h * ih,
+                    p.x - renderSize / 2, renderY - renderSize / 2,
+                    renderSize, renderSize
+                );
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.fillStyle = (escaladaGame.pedraAtual === p) ? "#f1c40f" : "#8d6e63";
+                ctx.beginPath();
+                ctx.arc(p.x, renderY, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     });
 
-    ctx.fillStyle = "#2ecc71";
-    ctx.beginPath();
-    ctx.arc(escaladaGame.playerX, escaladaGame.playerY, 12, 0, Math.PI * 2);
-    ctx.fill();
+    // Desenhar Jogador
+    const playerRenderY = escaladaGame.playerY - cameraY;
 
+    if (imgPronta) {
+        let currentSprite = escaladaGame.emPulo 
+            ? SPRITES_CONFIG.zorp.subindo[Math.floor((Date.now() / 120) % SPRITES_CONFIG.zorp.subindo.length)]
+            : SPRITES_CONFIG.zorp.idle;
+
+        const zorpW = 48;
+        const zorpH = 64;
+
+        ctx.drawImage(
+            imgEscaladaSprites,
+            currentSprite.x * iw, currentSprite.y * ih, currentSprite.w * iw, currentSprite.h * ih,
+            escaladaGame.playerX - zorpW / 2, playerRenderY - zorpH / 2,
+            zorpW, zorpH
+        );
+    } else {
+        ctx.fillStyle = "#2ecc71";
+        ctx.beginPath();
+        ctx.arc(escaladaGame.playerX, playerRenderY, 12, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // HUD
     drawMiniMap(ctx);
 
     ctx.fillStyle = "rgba(0,0,0,0.85)";
@@ -335,18 +471,37 @@ function drawEscaladaGame() {
 
     ctx.fillStyle = "#e74c3c";
     ctx.font = "bold 13px monospace";
-    ctx.fillText(`VIDAS: ${"♥".repeat(escaladaGame.vida)}`, 120, 20);
+    ctx.fillText(`VIDAS: ${"♥".repeat(Math.max(0, escaladaGame.vida))}`, 120, 20);
 
     ctx.fillStyle = "#fff";
+    ctx.font = "bold 12px monospace";
     ctx.fillText("ESTAMINA:", 230, 20);
     ctx.fillStyle = "#333";
     ctx.fillRect(300, 8, 100, 14);
     ctx.fillStyle = escaladaGame.estamina > 30 ? "#2ecc71" : "#e74c3c";
-    ctx.fillRect(300, 8, escaladaGame.estamina, 14);
+    ctx.fillRect(300, 8, Math.max(0, escaladaGame.estamina), 14);
     ctx.strokeStyle = "#fff";
     ctx.strokeRect(300, 8, 100, 14);
-}
 
+    ctx.fillStyle = "#f1c40f";
+    ctx.fillText(`ALTURA: ${Math.floor(escaladaGame.alturaAtual)}m`, 410, 20);
+    
+    // OVERLAYS (Telas)
+    if (escaladaGame.gameState === 'TUTORIAL') {
+        drawOverlayScreen("ESCALADA", [
+            "Chegue ao topo do monte (1200m).",
+            "Use A, D para escolher a pedra.",
+            "Aperte ESPAÇO para pular.",
+            "Cuidado para não zerar sua estamina!"
+        ], "#9b59b6");
+    } else if (escaladaGame.gameState === 'GAMEOVER') {
+        if (escaladaGame.win) {
+            drawOverlayScreen("VITÓRIA!", ["Você chegou ao topo e", "ganhou a Insígnia da Escalada!"], "#2ecc71");
+        } else {
+            drawOverlayScreen("DERROTA...", ["Sua estamina acabou ou você caiu.", "Tente novamente!"], "#e74c3c");
+        }
+    }
+}
 // -------------------------------------------------------------
 // MINIGAME ARCO E FLECHA
 // -------------------------------------------------------------
@@ -373,490 +528,11 @@ const arcoGame = {
 
     arrows: [],
     targets: [],
-    spawnTimer: 0
+    spawnTimer: 0,
+    
+    gameState: 'TUTORIAL',
+    win: false
 };
-
-// -------------------------------------------------------------
-// MINIGAME BASQUETE
-// -------------------------------------------------------------
-const basqueteGame = {
-    phase: 'READY',
-    round: 0,
-    maxRounds: 5,
-    playerScore: 0,
-    
-    playerX: 140,
-    playerY: 230,
-    playerState: 'IDLE',
-    playerFrame: 0,
-    playerFrameTimer: 0,
-
-    mestreX: 310,
-    mestreY: 230,
-    mestreState: 'IDLE',
-    mestreFrame: 0,
-    mestreFrameTimer: 0,
-    
-    powerValue: 0,        
-    powerDir: 1,          
-    powerSpeed: 2.2,      
-    powerLocked: -1,      
-    powerSweetMin: 40,    
-    powerSweetMax: 60,
-    
-    angleValue: 0,
-    angleDir: 1,
-    angleSpeed: 2.8,
-    angleLocked: -1,
-    angleSweetMin: 40,
-    angleSweetMax: 60,
-    
-    ballX: 140,
-    ballY: 190,
-    ballTargetX: 225,
-    ballTargetY: 60,
-    ballAnimTimer: 0,
-    ballAnimDuration: 40,
-    ballStartX: 140,
-    ballStartY: 190,
-    
-    resultTimer: 0,
-    resultText: '',
-    shotResult: '',
-    
-    countdownTimer: 0,
-    speedIncrease: 0.15
-};
-
-function resetBasquete() {
-    basqueteGame.phase = 'READY';
-    basqueteGame.round = 0;
-    basqueteGame.playerScore = 0;
-    basqueteGame.powerSpeed = 2.2;
-    basqueteGame.angleSpeed = 2.8;
-    basqueteGame.countdownTimer = 60;
-    _resetBasqueteRound();
-}
-
-function _resetBasqueteRound() {
-    basqueteGame.powerValue = 0;
-    basqueteGame.powerDir = 1;
-    basqueteGame.powerLocked = -1;
-    basqueteGame.angleValue = 0;
-    basqueteGame.angleDir = 1;
-    basqueteGame.angleLocked = -1;
-    basqueteGame.ballAnimTimer = 0;
-    basqueteGame.resultTimer = 0;
-    basqueteGame.resultText = '';
-    basqueteGame.shotResult = '';
-    basqueteGame.playerState = 'IDLE';
-    basqueteGame.mestreState = 'IDLE';
-    basqueteGame.ballX = 140;
-    basqueteGame.ballY = 190;
-}
-
-function updateBasquete() {
-    hintText.innerText = "[ESPAÇO] TRAVAR FORÇA / ÂNGULO";
-    
-    basqueteGame.playerFrameTimer++;
-    if (basqueteGame.playerFrameTimer > 10) {
-        basqueteGame.playerFrameTimer = 0;
-        basqueteGame.playerFrame = (basqueteGame.playerFrame + 1) % 2;
-        basqueteGame.mestreFrame = (basqueteGame.mestreFrame + 1) % 2;
-    }
-
-    if (basqueteGame.countdownTimer > 0) {
-        basqueteGame.countdownTimer--;
-        return;
-    }
-    
-    if (basqueteGame.phase === 'READY') {
-        basqueteGame.phase = 'POWER';
-        basqueteGame.playerState = 'PREP';
-        basqueteGame.mestreState = 'DEFEND';
-    }
-    
-    if (basqueteGame.phase === 'POWER') {
-        basqueteGame.powerValue += basqueteGame.powerSpeed * basqueteGame.powerDir;
-        if (basqueteGame.powerValue >= 100) { basqueteGame.powerValue = 100; basqueteGame.powerDir = -1; }
-        if (basqueteGame.powerValue <= 0) { basqueteGame.powerValue = 0; basqueteGame.powerDir = 1; }
-        
-        if (keys.space) {
-            basqueteGame.powerLocked = basqueteGame.powerValue;
-            basqueteGame.phase = 'ANGLE';
-            keys.space = false;
-        }
-    }
-    else if (basqueteGame.phase === 'ANGLE') {
-        basqueteGame.angleValue += basqueteGame.angleSpeed * basqueteGame.angleDir;
-        if (basqueteGame.angleValue >= 100) { basqueteGame.angleValue = 100; basqueteGame.angleDir = -1; }
-        if (basqueteGame.angleValue <= 0) { basqueteGame.angleValue = 0; basqueteGame.angleDir = 1; }
-        
-        if (keys.space) {
-            basqueteGame.angleLocked = basqueteGame.angleValue;
-            basqueteGame.phase = 'SHOOTING';
-            basqueteGame.playerState = 'SHOOT';
-            basqueteGame.ballAnimTimer = 0;
-            
-            let powerErr = Math.abs(basqueteGame.powerLocked - 50);
-            let angleErr = Math.abs(basqueteGame.angleLocked - 50);
-            
-            basqueteGame.ballStartX = basqueteGame.playerX;
-            basqueteGame.ballStartY = basqueteGame.playerY - 40;
-            basqueteGame.ballTargetX = 225 + (basqueteGame.angleLocked - 50) * 1.5;
-            basqueteGame.ballTargetY = 55 + powerErr * 0.5;
-            
-            if (powerErr <= 10 && angleErr <= 10) {
-                basqueteGame.shotResult = 'SWISH';
-            } else if (powerErr <= 20 && angleErr <= 20) {
-                basqueteGame.shotResult = 'GOOD';
-            } else {
-                basqueteGame.shotResult = 'MISS';
-            }
-            
-            keys.space = false;
-        }
-    }
-    else if (basqueteGame.phase === 'SHOOTING') {
-        basqueteGame.ballAnimTimer++;
-        let t = basqueteGame.ballAnimTimer / basqueteGame.ballAnimDuration;
-        
-        if (t >= 1) {
-            t = 1;
-            basqueteGame.phase = 'RESULT';
-            basqueteGame.round++;
-            
-            if (basqueteGame.shotResult === 'SWISH') {
-                basqueteGame.playerScore += 3;
-                basqueteGame.resultText = 'SWISH! +3';
-                basqueteGame.playerState = 'WIN';
-                basqueteGame.mestreState = 'LOSE';
-            } else if (basqueteGame.shotResult === 'GOOD') {
-                basqueteGame.playerScore += 2;
-                basqueteGame.resultText = 'CESTA! +2';
-                basqueteGame.playerState = 'WIN';
-                basqueteGame.mestreState = 'LOSE';
-            } else {
-                basqueteGame.resultText = 'ERROU!';
-                basqueteGame.playerState = 'LOSE';
-                basqueteGame.mestreState = 'WIN';
-            }
-            basqueteGame.resultTimer = 90;
-        }
-        
-        let linearX = basqueteGame.ballStartX + (basqueteGame.ballTargetX - basqueteGame.ballStartX) * t;
-        let linearY = basqueteGame.ballStartY + (basqueteGame.ballTargetY - basqueteGame.ballStartY) * t;
-        let arcHeight = -120 * Math.sin(t * Math.PI);
-        
-        basqueteGame.ballX = linearX;
-        basqueteGame.ballY = linearY + arcHeight;
-    }
-    else if (basqueteGame.phase === 'RESULT') {
-        basqueteGame.resultTimer--;
-        
-        if (basqueteGame.resultTimer <= 0) {
-            if (basqueteGame.round >= basqueteGame.maxRounds) {
-                if (basqueteGame.playerScore >= 8) {
-                    insignias.basquete = true;
-                    currentScene = "ILHA_BASQUETE";
-                    dialogText.innerHTML = `> MESTRE DO BASQUETE: Incrível! ${basqueteGame.playerScore} pontos! Você é um craque!`;
-                    dialogBox.classList.add("show");
-                } else {
-                    currentScene = "ILHA_BASQUETE";
-                    dialogText.innerHTML = `> MESTRE DO BASQUETE: ${basqueteGame.playerScore} pontos... Tente acertar o momento perfeito!`;
-                    dialogBox.classList.add("show");
-                }
-            } else {
-                _resetBasqueteRound();
-                basqueteGame.phase = 'READY';
-                basqueteGame.countdownTimer = 30;
-                basqueteGame.powerSpeed += basqueteGame.speedIncrease;
-                basqueteGame.angleSpeed += basqueteGame.speedIncrease;
-            }
-        }
-    }
-}
-
-// Configuração da grade da imagem Mestre_basq.png (10 colunas x 5 linhas)
-const MESTRE_COLS = 10;
-const MESTRE_ROWS = 5;
-
-function drawBasqueteGame() {
-    // 1. Cenário
-    if (imgArenaBasquete.complete && imgArenaBasquete.naturalWidth > 0) {
-        ctx.drawImage(imgArenaBasquete, 0, 0, canvas.width, canvas.height);
-    } else {
-        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#c68642'; ctx.fillRect(0, 180, canvas.width, 120);
-        ctx.strokeStyle = '#e8a95b'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(canvas.width, 180); ctx.stroke();
-    }
-
-    ctx.imageSmoothingEnabled = false;
-
-    // 2. Desenho da CESTA / ARO (Extraída do Sprite Sheet na 5ª linha)
-    if (imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
-        const frameW = imgMestreBasquete.width / MESTRE_COLS;
-        const frameH = imgMestreBasquete.height / MESTRE_ROWS;
-
-        // Recorte da Cesta (Linha 4, Coluna ~3.7)
-        const cestaSx = Math.floor(3.65 * frameW);
-        const cestaSy = Math.floor(4 * frameH);
-        const cestaSw = Math.floor(frameW * 0.85);
-        const cestaSh = Math.floor(frameH * 0.85);
-
-        const cestaWidth = 32;
-        const cestaHeight = 32;
-        
-        // Posição ajustada abaixo da tabela da quadra
-        ctx.drawImage(
-            imgMestreBasquete,
-            cestaSx, cestaSy, cestaSw, cestaSh,
-            225 - cestaWidth / 2, 45, cestaWidth, cestaHeight
-        );
-    }
-
-    // 3. Personagens (Zorp e Mestre com recorte e proporções corrigidos)
-    if (imgZorpBasquete.complete && imgZorpBasquete.naturalWidth > 0 &&
-        imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
-
-        const renderH = 75; // Altura proporcional ajustada para a quadra
-
-        // --- ZORP BASQUETE ---
-        const zorpFrameW = imgZorpBasquete.width / 10;
-        const zorpFrameH = imgZorpBasquete.height / 5;
-        const zorpRenderW = renderH * (zorpFrameW / zorpFrameH);
-
-        let pCol = 0;
-        if (basqueteGame.playerState === 'PREP') pCol = 1;
-        else if (basqueteGame.playerState === 'SHOOT') pCol = 2;
-        else if (basqueteGame.playerState === 'WIN') pCol = 3 + basqueteGame.playerFrame;
-        else if (basqueteGame.playerState === 'LOSE') pCol = 5;
-
-        ctx.drawImage(
-            imgZorpBasquete,
-            Math.floor(pCol * zorpFrameW), 0, Math.floor(zorpFrameW), Math.floor(zorpFrameH),
-            Math.floor(basqueteGame.playerX - zorpRenderW / 2), Math.floor(basqueteGame.playerY - renderH),
-            Math.floor(zorpRenderW), Math.floor(renderH)
-        );
-
-        // --- MESTRE DO BASQUETE (Grade 10x5) ---
-        const mestreFrameW = imgMestreBasquete.width / MESTRE_COLS;
-        const mestreFrameH = imgMestreBasquete.height / MESTRE_ROWS;
-        const mestreRenderW = renderH * (mestreFrameW / mestreFrameH);
-
-        let mCol = 0, mRow = 0;
-        if (basqueteGame.mestreState === 'DEFEND') { mCol = 1; mRow = 0; }
-        else if (basqueteGame.mestreState === 'WIN') { mCol = 6 + basqueteGame.mestreFrame; mRow = 3; }
-        else if (basqueteGame.mestreState === 'LOSE') { mCol = 0; mRow = 0; }
-
-        ctx.drawImage(
-            imgMestreBasquete,
-            Math.floor(mCol * mestreFrameW), Math.floor(mRow * mestreFrameH),
-            Math.floor(mestreFrameW), Math.floor(mestreFrameH),
-            Math.floor(basqueteGame.mestreX - mestreRenderW / 2), Math.floor(basqueteGame.mestreY - renderH),
-            Math.floor(mestreRenderW), Math.floor(renderH)
-        );
-    }
-
-    // 4. Desenho da BOLA DE BASQUETE (Extraída do Sprite Sheet na 5ª linha)
-    if (imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
-        const frameW = imgMestreBasquete.width / MESTRE_COLS;
-        const frameH = imgMestreBasquete.height / MESTRE_ROWS;
-
-        // Recorte da Bola
-        const ballSx = Math.floor(3.68 * frameW);
-        const ballSy = Math.floor(4 * frameH);
-        const ballSw = Math.floor(frameW * 0.45);
-        const ballSh = Math.floor(frameH * 0.45);
-
-        const ballSize = 18;
-        ctx.drawImage(
-            imgMestreBasquete,
-            ballSx, ballSy, ballSw, ballSh,
-            Math.floor(basqueteGame.ballX - ballSize / 2), Math.floor(basqueteGame.ballY - ballSize / 2),
-            ballSize, ballSize
-        );
-    }
-
-    // 5. Interface: BARRA DE FORÇA (Esquerda, Vertical)
-    let barX = 30, barY = 40, barW = 22, barH = 190;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-    
-    let gradient = ctx.createLinearGradient(0, barY + barH, 0, barY);
-    gradient.addColorStop(0, '#e74c3c');
-    gradient.addColorStop(0.3, '#f39c12');
-    gradient.addColorStop(0.5, '#2ecc71');
-    gradient.addColorStop(0.7, '#f39c12');
-    gradient.addColorStop(1, '#e74c3c');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(barX, barY, barW, barH);
-    
-    let sweetY1 = barY + barH - (basqueteGame.powerSweetMax / 100) * barH;
-    let sweetY2 = barY + barH - (basqueteGame.powerSweetMin / 100) * barH;
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeRect(barX, sweetY1, barW, sweetY2 - sweetY1);
-    ctx.setLineDash([]);
-    
-    let powerY = (basqueteGame.powerLocked >= 0)
-        ? barY + barH - (basqueteGame.powerLocked / 100) * barH
-        : barY + barH - (basqueteGame.powerValue / 100) * barH;
-        
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(barX - 4, powerY - 2, barW + 8, 4);
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText('FORÇA', barX - 2, barY - 8);
-
-    // 6. Interface: BARRA DE ÂNGULO (Inferior, Horizontal)
-    let aBarX = 80, aBarY = 260, aBarW = 280, aBarH = 18;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(aBarX - 2, aBarY - 2, aBarW + 4, aBarH + 4);
-    
-    let aGradient = ctx.createLinearGradient(aBarX, 0, aBarX + aBarW, 0);
-    aGradient.addColorStop(0, '#e74c3c');
-    aGradient.addColorStop(0.3, '#f39c12');
-    aGradient.addColorStop(0.5, '#2ecc71');
-    aGradient.addColorStop(0.7, '#f39c12');
-    aGradient.addColorStop(1, '#e74c3c');
-    ctx.fillStyle = aGradient;
-    ctx.fillRect(aBarX, aBarY, aBarW, aBarH);
-    
-    let sweetX1 = aBarX + (basqueteGame.angleSweetMin / 100) * aBarW;
-    let sweetX2 = aBarX + (basqueteGame.angleSweetMax / 100) * aBarW;
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-    ctx.setLineDash([3, 3]);
-    ctx.strokeRect(sweetX1, aBarY, sweetX2 - sweetX1, aBarH);
-    ctx.setLineDash([]);
-    
-    let angleX = (basqueteGame.angleLocked >= 0)
-        ? aBarX + (basqueteGame.angleLocked / 100) * aBarW
-        : aBarX + (basqueteGame.angleValue / 100) * aBarW;
-        
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(angleX - 2, aBarY - 4, 4, aBarH + 8);
-    ctx.fillText('ÂNGULO', aBarX + aBarW / 2 - 20, aBarY + aBarH + 12);
-
-    // 7. HUD do Placar
-    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, 28);
-    ctx.font = 'bold 13px monospace';
-    ctx.fillStyle = '#f1c40f'; ctx.fillText(`PONTOS: ${basqueteGame.playerScore}`, 15, 19);
-    ctx.fillStyle = '#3498db'; ctx.fillText(`ARREMESSO: ${basqueteGame.round}/${basqueteGame.maxRounds}`, 160, 19);
-    
-    ctx.fillStyle = '#ffffff';
-    let phaseLabel = '';
-    if (basqueteGame.phase === 'POWER') phaseLabel = '► TRAVE A FORÇA!';
-    else if (basqueteGame.phase === 'ANGLE') phaseLabel = '► TRAVE O ÂNGULO!';
-    ctx.fillText(phaseLabel, 300, 19);
-
-    // Countdown e Resultado Animado
-    if (basqueteGame.countdownTimer > 0) {
-        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px monospace';
-        let countNum = Math.ceil(basqueteGame.countdownTimer / 30);
-        let countText = countNum > 0 ? `${countNum}` : 'GO!';
-        let tw = ctx.measureText(countText).width;
-        ctx.fillText(countText, (canvas.width - tw) / 2, 150);
-    }
-
-    if (basqueteGame.phase === 'RESULT' && basqueteGame.resultText) {
-        ctx.font = 'bold 26px monospace';
-        let color = basqueteGame.shotResult === 'MISS' ? '#e74c3c' : '#2ecc71';
-        if (basqueteGame.shotResult === 'SWISH') color = '#f1c40f';
-        ctx.fillStyle = color;
-        let tw = ctx.measureText(basqueteGame.resultText).width;
-        ctx.fillText(basqueteGame.resultText, (canvas.width - tw) / 2, 130);
-    }
-}
-
-function drawArcoGame() {
-    if (imgArenaArco.complete && imgArenaArco.naturalWidth > 0) {
-        ctx.drawImage(imgArenaArco, 0, 0, canvas.width, canvas.height);
-    } else {
-        ctx.fillStyle = "#66bb6a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    arcoGame.targets.forEach(t => {
-        ctx.fillStyle = "#5d4037"; ctx.fillRect(Math.floor(t.x - 2), Math.floor(t.y), 4, 20);
-        ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.6, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 10px monospace";
-        ctx.fillText(`${t.points}p`, Math.floor(t.x - 10), Math.floor(t.y - t.radius - 6));
-    });
-
-    if (imgArcoSprites.complete && imgArcoSprites.naturalWidth > 0) {
-        ctx.imageSmoothingEnabled = false;
-
-        let frameW = imgArcoSprites.width / 8;
-        let frameH = imgArcoSprites.height / 2;
-        let renderHeight = 110; 
-        let renderWidth = renderHeight * (frameW / frameH);
-
-        let arrowSrcX = Math.floor(7 * frameW + (frameW * 0.3));
-        let arrowSrcY = Math.floor(frameH * 0.2);                
-        let arrowSrcW = Math.floor(frameW * 0.5);                
-        let arrowSrcH = Math.floor(frameH * 0.8);                
-
-        let arrowRenderWidth = 22;  
-        let arrowRenderHeight = 36; 
-
-        arcoGame.arrows.forEach(arr => {
-            ctx.drawImage(
-                imgArcoSprites, 
-                arrowSrcX, arrowSrcY, arrowSrcW, arrowSrcH, 
-                Math.floor(arr.x - arrowRenderWidth / 2), Math.floor(arr.y - arrowRenderHeight / 2), 
-                arrowRenderWidth, arrowRenderHeight
-            );
-        });
-
-        let pRow = 0; 
-        let pCol = arcoGame.playerState === 'SHOOT' ? 2 : Math.floor(arcoGame.playerFrame);
-        
-        let pSx = Math.floor(pCol * frameW);
-        let pSy = Math.floor(pRow * frameH);
-        let pSw = Math.floor(frameW);
-        let pSh = Math.floor(frameH);
-
-        let pDx = Math.floor(arcoGame.playerX - (renderWidth / 2));
-        let pDy = Math.floor(arcoGame.playerY - renderHeight + 15);
-        let pDw = Math.floor(renderWidth);
-        let pDh = Math.floor(renderHeight);
-
-        ctx.drawImage(imgArcoSprites, pSx, pSy, pSw, pSh, pDx, pDy, pDw, pDh);
-
-        let mRow = 0; 
-        let mCol = arcoGame.mestreState === 'SHOOT' ? 6 : 4 + Math.floor(arcoGame.mestreFrame); 
-        
-        let mSx = Math.floor(mCol * frameW);
-        let mSy = Math.floor(mRow * frameH);
-        let mSw = Math.floor(frameW);
-        let mSh = Math.floor(frameH);
-
-        let mDx = Math.floor(arcoGame.mestreX - (renderWidth / 2));
-        let mDy = Math.floor(arcoGame.mestreY - renderHeight + 15);
-        let mDw = Math.floor(renderWidth);
-        let mDh = Math.floor(renderHeight);
-
-        ctx.drawImage(imgArcoSprites, mSx, mSy, mSw, mSh, mDx, mDy, mDw, mDh);
-        
-    } else {
-        arcoGame.arrows.forEach(arr => {
-            ctx.fillStyle = "#ecf0f1"; ctx.fillRect(Math.floor(arr.x - 1), Math.floor(arr.y), 2, 14);
-        });
-        ctx.fillStyle = "#2ecc71"; ctx.fillRect(Math.floor(arcoGame.playerX - 15), Math.floor(arcoGame.playerY - 40), 30, 40);
-        ctx.fillStyle = "#e74c3c"; ctx.fillRect(Math.floor(arcoGame.mestreX - 15), Math.floor(arcoGame.mestreY - 40), 30, 40);
-    }
-
-    ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0, 0, canvas.width, 30);
-    ctx.fillStyle = "#f1c40f"; ctx.font = "bold 14px monospace";
-    ctx.fillText(`ZORP: ${arcoGame.playerScore}/${arcoGame.targetScore}`, 20, 20);
-    
-    ctx.fillStyle = "#e74c3c";
-    let mestreText = `MESTRE: ${arcoGame.mestreScore}/${arcoGame.targetScore}`;
-    ctx.fillText(mestreText, canvas.width - ctx.measureText(mestreText).width - 20, 20);
-}
 
 function resetArco() {
     arcoGame.playerScore = 0;
@@ -872,6 +548,8 @@ function resetArco() {
     arcoGame.arrows = [];
     arcoGame.targets = [];
     arcoGame.spawnTimer = 0;
+    arcoGame.gameState = 'TUTORIAL';
+    arcoGame.win = false;
 }
 
 function spawnArcoTarget() {
@@ -890,6 +568,23 @@ function spawnArcoTarget() {
 }
 
 function updateArco() {
+    if (arcoGame.gameState === 'TUTORIAL') {
+        if (keys.space) { arcoGame.gameState = 'PLAYING'; keys.space = false; }
+        return;
+    }
+    
+    if (arcoGame.gameState === 'GAMEOVER') {
+        if (keys.space) { 
+            currentScene = "ILHA_ARCO"; 
+            keys.space = false; 
+            dialogText.innerHTML = arcoGame.win 
+                ? `> MESTRE ARQUEIRO: Fantástico! Você venceu a disputa com ${arcoGame.playerScore} pontos!` 
+                : `> MESTRE ARQUEIRO: Ganhei desta vez! Mova-se rápido para alinhar seus tiros.`;
+            dialogBox.classList.add("show");
+        }
+        return;
+    }
+
     hintText.innerText = "[A D] MOVER | [ESPAÇO] ATIRAR FLECHA";
 
     arcoGame.spawnTimer++;
@@ -1005,13 +700,528 @@ function updateArco() {
 
     if (arcoGame.playerScore >= arcoGame.targetScore) {
         insignias.arco = true;
-        currentScene = "ILHA_ARCO";
-        dialogText.innerHTML = `> MESTRE ARQUEIRO: Fantástico! Você venceu a disputa com ${arcoGame.playerScore} pontos!`;
-        dialogBox.classList.add("show");
+        arcoGame.gameState = 'GAMEOVER';
+        arcoGame.win = true;
     } else if (arcoGame.mestreScore >= arcoGame.targetScore) {
-        currentScene = "ILHA_ARCO";
-        dialogText.innerHTML = `> MESTRE ARQUEIRO: Ganhei desta vez! Mova-se rápido para alinhar seus tiros.`;
-        dialogBox.classList.add("show");
+        arcoGame.gameState = 'GAMEOVER';
+        arcoGame.win = false;
+    }
+}
+
+function drawArcoGame() {
+    if (imgArenaArco.complete && imgArenaArco.naturalWidth > 0) {
+        ctx.drawImage(imgArenaArco, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#66bb6a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    arcoGame.targets.forEach(t => {
+        ctx.fillStyle = "#5d4037"; ctx.fillRect(Math.floor(t.x - 2), Math.floor(t.y), 4, 20);
+        ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`${t.points}p`, Math.floor(t.x - 10), Math.floor(t.y - t.radius - 6));
+    });
+
+    if (imgArcoSprites.complete && imgArcoSprites.naturalWidth > 0) {
+        ctx.imageSmoothingEnabled = false;
+
+        let frameW = imgArcoSprites.width / 8;
+        let frameH = imgArcoSprites.height / 2;
+        let renderHeight = 110; 
+        let renderWidth = renderHeight * (frameW / frameH);
+
+        let arrowSrcX = Math.floor(7 * frameW + (frameW * 0.3));
+        let arrowSrcY = Math.floor(frameH * 0.2);                
+        let arrowSrcW = Math.floor(frameW * 0.5);                
+        let arrowSrcH = Math.floor(frameH * 0.8);                
+
+        let arrowRenderWidth = 22;  
+        let arrowRenderHeight = 36; 
+
+        arcoGame.arrows.forEach(arr => {
+            ctx.drawImage(
+                imgArcoSprites, 
+                arrowSrcX, arrowSrcY, arrowSrcW, arrowSrcH, 
+                Math.floor(arr.x - arrowRenderWidth / 2), Math.floor(arr.y - arrowRenderHeight / 2), 
+                arrowRenderWidth, arrowRenderHeight
+            );
+        });
+
+        let pRow = 0; 
+        let pCol = arcoGame.playerState === 'SHOOT' ? 2 : Math.floor(arcoGame.playerFrame);
+        
+        let pSx = Math.floor(pCol * frameW);
+        let pSy = Math.floor(pRow * frameH);
+        let pSw = Math.floor(frameW);
+        let pSh = Math.floor(frameH);
+
+        let pDx = Math.floor(arcoGame.playerX - (renderWidth / 2));
+        let pDy = Math.floor(arcoGame.playerY - renderHeight + 15);
+        let pDw = Math.floor(renderWidth);
+        let pDh = Math.floor(renderHeight);
+
+        ctx.drawImage(imgArcoSprites, pSx, pSy, pSw, pSh, pDx, pDy, pDw, pDh);
+
+        let mRow = 0; 
+        let mCol = arcoGame.mestreState === 'SHOOT' ? 6 : 4 + Math.floor(arcoGame.mestreFrame); 
+        
+        let mSx = Math.floor(mCol * frameW);
+        let mSy = Math.floor(mRow * frameH);
+        let mSw = Math.floor(frameW);
+        let mSh = Math.floor(frameH);
+
+        let mDx = Math.floor(arcoGame.mestreX - (renderWidth / 2));
+        let mDy = Math.floor(arcoGame.mestreY - renderHeight + 15);
+        let mDw = Math.floor(renderWidth);
+        let mDh = Math.floor(renderHeight);
+
+        ctx.drawImage(imgArcoSprites, mSx, mSy, mSw, mSh, mDx, mDy, mDw, mDh);
+        
+    } else {
+        arcoGame.arrows.forEach(arr => {
+            ctx.fillStyle = "#ecf0f1"; ctx.fillRect(Math.floor(arr.x - 1), Math.floor(arr.y), 2, 14);
+        });
+        ctx.fillStyle = "#2ecc71"; ctx.fillRect(Math.floor(arcoGame.playerX - 15), Math.floor(arcoGame.playerY - 40), 30, 40);
+        ctx.fillStyle = "#e74c3c"; ctx.fillRect(Math.floor(arcoGame.mestreX - 15), Math.floor(arcoGame.mestreY - 40), 30, 40);
+    }
+
+    ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0, 0, canvas.width, 30);
+    ctx.fillStyle = "#f1c40f"; ctx.font = "bold 14px monospace";
+    ctx.fillText(`ZORP: ${arcoGame.playerScore}/${arcoGame.targetScore}`, 20, 20);
+    
+    ctx.fillStyle = "#e74c3c";
+    let mestreText = `MESTRE: ${arcoGame.mestreScore}/${arcoGame.targetScore}`;
+    ctx.fillText(mestreText, canvas.width - ctx.measureText(mestreText).width - 20, 20);
+
+    // OVERLAYS (Telas)
+    if (arcoGame.gameState === 'TUTORIAL') {
+        drawOverlayScreen("ARCO E FLECHA", [
+            "Seja o primeiro a fazer " + arcoGame.targetScore + " pontos.",
+            "Use A e D para mirar a direção.",
+            "Aperte ESPAÇO para atirar.",
+            "Acerte os alvos antes do Mestre!"
+        ], "#e67e22");
+    } else if (arcoGame.gameState === 'GAMEOVER') {
+        if (arcoGame.win) {
+            drawOverlayScreen("VITÓRIA!", ["Sua mira é impecável!", "Insígnia do Arco conquistada!"], "#2ecc71");
+        } else {
+            drawOverlayScreen("DERROTA...", ["O Mestre Arqueiro foi mais rápido.", "Tente não perder os alvos velozes."], "#e74c3c");
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// MINIGAME BASQUETE
+// -------------------------------------------------------------
+const basqueteGame = {
+    phase: 'TUTORIAL',
+    round: 0,
+    maxRounds: 5,
+    playerScore: 0,
+    
+    playerX: 140,
+    playerY: 175,
+    playerState: 'IDLE',
+    playerFrame: 0,
+    playerFrameTimer: 0,
+
+    mestreX: 310,
+    mestreY: 175,
+    mestreState: 'IDLE',
+    mestreFrame: 0,
+    mestreFrameTimer: 0,
+    
+    powerValue: 0,        
+    powerDir: 1,          
+    powerSpeed: 2.2,      
+    powerLocked: -1,      
+    powerSweetMin: 40,    
+    powerSweetMax: 60,
+    
+    angleValue: 0,
+    angleDir: 1,
+    angleSpeed: 2.8,
+    angleLocked: -1,
+    angleSweetMin: 40,
+    angleSweetMax: 60,
+    
+    ballX: 140,
+    ballY: 145,
+    ballTargetX: 225,
+    ballTargetY: 60,
+    ballAnimTimer: 0,
+    ballAnimDuration: 40,
+    ballStartX: 140,
+    ballStartY: 190,
+    
+    resultTimer: 0,
+    resultText: '',
+    shotResult: '',
+    
+    countdownTimer: 0,
+    speedIncrease: 0.15,
+    
+    win: false
+};
+
+function resetBasquete() {
+    basqueteGame.phase = 'TUTORIAL';
+    basqueteGame.round = 0;
+    basqueteGame.playerScore = 0;
+    basqueteGame.powerSpeed = 2.2;
+    basqueteGame.angleSpeed = 2.8;
+    basqueteGame.countdownTimer = 60;
+    basqueteGame.win = false;
+    _resetBasqueteRound();
+}
+
+function _resetBasqueteRound() {
+    basqueteGame.powerValue = 0;
+    basqueteGame.powerDir = 1;
+    basqueteGame.powerLocked = -1;
+    basqueteGame.angleValue = 0;
+    basqueteGame.angleDir = 1;
+    basqueteGame.angleLocked = -1;
+    basqueteGame.ballAnimTimer = 0;
+    basqueteGame.resultTimer = 0;
+    basqueteGame.resultText = '';
+    basqueteGame.shotResult = '';
+    basqueteGame.playerState = 'IDLE';
+    basqueteGame.mestreState = 'IDLE';
+    basqueteGame.ballX = 140;
+    basqueteGame.ballY = 145;
+}
+
+function updateBasquete() {
+    if (basqueteGame.phase === 'TUTORIAL') {
+        if (keys.space) { basqueteGame.phase = 'READY'; keys.space = false; }
+        return;
+    }
+    
+    if (basqueteGame.phase === 'GAMEOVER') {
+        if (keys.space) { 
+            currentScene = "ILHA_BASQUETE"; 
+            keys.space = false; 
+            dialogBox.classList.add("show");
+        }
+        return;
+    }
+
+    hintText.innerText = "[ESPAÇO] TRAVAR FORÇA / ÂNGULO";
+    
+    basqueteGame.playerFrameTimer++;
+    if (basqueteGame.playerFrameTimer > 10) {
+        basqueteGame.playerFrameTimer = 0;
+        basqueteGame.playerFrame = (basqueteGame.playerFrame + 1) % 2;
+        basqueteGame.mestreFrame = (basqueteGame.mestreFrame + 1) % 2;
+    }
+
+    if (basqueteGame.countdownTimer > 0) {
+        basqueteGame.countdownTimer--;
+        return;
+    }
+    
+    if (basqueteGame.phase === 'READY') {
+        basqueteGame.phase = 'POWER';
+        basqueteGame.playerState = 'PREP';
+        basqueteGame.mestreState = 'DEFEND';
+    }
+    
+    if (basqueteGame.phase === 'POWER') {
+        basqueteGame.powerValue += basqueteGame.powerSpeed * basqueteGame.powerDir;
+        if (basqueteGame.powerValue >= 100) { basqueteGame.powerValue = 100; basqueteGame.powerDir = -1; }
+        if (basqueteGame.powerValue <= 0) { basqueteGame.powerValue = 0; basqueteGame.powerDir = 1; }
+        
+        if (keys.space) {
+            basqueteGame.powerLocked = basqueteGame.powerValue;
+            basqueteGame.phase = 'ANGLE';
+            keys.space = false;
+        }
+    }
+    else if (basqueteGame.phase === 'ANGLE') {
+        basqueteGame.angleValue += basqueteGame.angleSpeed * basqueteGame.angleDir;
+        if (basqueteGame.angleValue >= 100) { basqueteGame.angleValue = 100; basqueteGame.angleDir = -1; }
+        if (basqueteGame.angleValue <= 0) { basqueteGame.angleValue = 0; basqueteGame.angleDir = 1; }
+        
+        if (keys.space) {
+            basqueteGame.angleLocked = basqueteGame.angleValue;
+            basqueteGame.phase = 'SHOOTING';
+            basqueteGame.playerState = 'SHOOT';
+            basqueteGame.ballAnimTimer = 0;
+            
+            let powerErr = Math.abs(basqueteGame.powerLocked - 50);
+            let angleErr = Math.abs(basqueteGame.angleLocked - 50);
+            
+            basqueteGame.ballStartX = basqueteGame.playerX;
+            basqueteGame.ballStartY = basqueteGame.playerY - 40;
+            basqueteGame.ballTargetX = 225 + (basqueteGame.angleLocked - 50) * 1.5;
+            basqueteGame.ballTargetY = 55 + powerErr * 0.5;
+            
+            if (powerErr <= 10 && angleErr <= 10) {
+                basqueteGame.shotResult = 'SWISH';
+            } else if (powerErr <= 20 && angleErr <= 20) {
+                basqueteGame.shotResult = 'GOOD';
+            } else {
+                basqueteGame.shotResult = 'MISS';
+            }
+            
+            keys.space = false;
+        }
+    }
+    else if (basqueteGame.phase === 'SHOOTING') {
+        basqueteGame.ballAnimTimer++;
+        let t = basqueteGame.ballAnimTimer / basqueteGame.ballAnimDuration;
+        
+        if (t >= 1) {
+            t = 1;
+            basqueteGame.phase = 'RESULT';
+            basqueteGame.round++;
+            
+            if (basqueteGame.shotResult === 'SWISH') {
+                basqueteGame.playerScore += 3;
+                basqueteGame.resultText = 'SWISH! +3';
+                basqueteGame.playerState = 'WIN';
+                basqueteGame.mestreState = 'LOSE';
+            } else if (basqueteGame.shotResult === 'GOOD') {
+                basqueteGame.playerScore += 2;
+                basqueteGame.resultText = 'CESTA! +2';
+                basqueteGame.playerState = 'WIN';
+                basqueteGame.mestreState = 'LOSE';
+            } else {
+                basqueteGame.resultText = 'ERROU!';
+                basqueteGame.playerState = 'LOSE';
+                basqueteGame.mestreState = 'WIN';
+            }
+            basqueteGame.resultTimer = 90;
+        }
+        
+        let linearX = basqueteGame.ballStartX + (basqueteGame.ballTargetX - basqueteGame.ballStartX) * t;
+        let linearY = basqueteGame.ballStartY + (basqueteGame.ballTargetY - basqueteGame.ballStartY) * t;
+        let arcHeight = -120 * Math.sin(t * Math.PI);
+        
+        basqueteGame.ballX = linearX;
+        basqueteGame.ballY = linearY + arcHeight;
+    }
+    else if (basqueteGame.phase === 'RESULT') {
+        basqueteGame.resultTimer--;
+        
+        if (basqueteGame.resultTimer <= 0) {
+            if (basqueteGame.round >= basqueteGame.maxRounds) {
+                basqueteGame.phase = 'GAMEOVER';
+                basqueteGame.win = basqueteGame.playerScore >= 8;
+                
+                if (basqueteGame.win) {
+                    insignias.basquete = true;
+                    dialogText.innerHTML = `> MESTRE DO BASQUETE: Incrível! ${basqueteGame.playerScore} pontos! Você é um craque!`;
+                } else {
+                    dialogText.innerHTML = `> MESTRE DO BASQUETE: ${basqueteGame.playerScore} pontos... Tente acertar o momento perfeito!`;
+                }
+            } else {
+                _resetBasqueteRound();
+                basqueteGame.phase = 'READY';
+                basqueteGame.countdownTimer = 30;
+                basqueteGame.powerSpeed += basqueteGame.speedIncrease;
+                basqueteGame.angleSpeed += basqueteGame.speedIncrease;
+            }
+        }
+    }
+}
+
+const MESTRE_COLS = 10;
+const MESTRE_ROWS = 5;
+
+function drawBasqueteGame() {
+    if (imgArenaBasquete.complete && imgArenaBasquete.naturalWidth > 0) {
+        ctx.drawImage(imgArenaBasquete, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#c68642'; ctx.fillRect(0, 180, canvas.width, 120);
+        ctx.strokeStyle = '#e8a95b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(canvas.width, 180); ctx.stroke();
+    }
+
+    ctx.imageSmoothingEnabled = false;
+
+    if (imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+        const frameW = imgMestreBasquete.width / MESTRE_COLS;
+        const frameH = imgMestreBasquete.height / MESTRE_ROWS;
+
+        const cestaSx = Math.floor(3.65 * frameW);
+        const cestaSy = Math.floor(4 * frameH);
+        const cestaSw = Math.floor(frameW * 0.85);
+        const cestaSh = Math.floor(frameH * 0.85);
+
+        const cestaWidth = 32;
+        const cestaHeight = 32;
+        
+        ctx.drawImage(
+            imgMestreBasquete,
+            cestaSx, cestaSy, cestaSw, cestaSh,
+            225 - cestaWidth / 2, 45, cestaWidth, cestaHeight
+        );
+    }
+
+    if (imgZorpBasquete.complete && imgZorpBasquete.naturalWidth > 0 &&
+        imgMestreBasquete.complete && imgMestreBasquete.naturalWidth > 0) {
+
+        const renderH = 75;
+
+        const zorpFrameW = imgZorpBasquete.width / 10;
+        const zorpFrameH = imgZorpBasquete.height / 5;
+        const zorpRenderW = renderH * (zorpFrameW / zorpFrameH);
+
+        let pCol = 0;
+        if (basqueteGame.playerState === 'PREP') pCol = 1;
+        else if (basqueteGame.playerState === 'SHOOT') pCol = 2;
+        else if (basqueteGame.playerState === 'WIN') pCol = 3 + basqueteGame.playerFrame;
+        else if (basqueteGame.playerState === 'LOSE') pCol = 5;
+
+        ctx.drawImage(
+            imgZorpBasquete,
+            Math.floor(pCol * zorpFrameW), 0, Math.floor(zorpFrameW), Math.floor(zorpFrameH),
+            Math.floor(basqueteGame.playerX - zorpRenderW / 2), Math.floor(basqueteGame.playerY - renderH),
+            Math.floor(zorpRenderW), Math.floor(renderH)
+        );
+
+        const mestreFrameW = imgMestreBasquete.width / MESTRE_COLS;
+        const mestreFrameH = imgMestreBasquete.height / MESTRE_ROWS;
+        const mestreRenderW = renderH * (mestreFrameW / mestreFrameH);
+
+        let mCol = 0, mRow = 0;
+        if (basqueteGame.mestreState === 'DEFEND') { mCol = 1; mRow = 0; }
+        else if (basqueteGame.mestreState === 'WIN') { mCol = 6 + basqueteGame.mestreFrame; mRow = 3; }
+        else if (basqueteGame.mestreState === 'LOSE') { mCol = 0; mRow = 0; }
+
+        ctx.drawImage(
+            imgMestreBasquete,
+            Math.floor(mCol * mestreFrameW), Math.floor(mRow * mestreFrameH),
+            Math.floor(mestreFrameW), Math.floor(mestreFrameH),
+            Math.floor(basqueteGame.mestreX - mestreRenderW / 2), Math.floor(basqueteGame.mestreY - renderH),
+            Math.floor(mestreRenderW), Math.floor(renderH)
+        );
+    }
+
+    ctx.fillStyle = "#e67e22";
+    ctx.beginPath();
+    ctx.arc(basqueteGame.ballX, basqueteGame.ballY, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#d35400";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = "#a04000";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(basqueteGame.ballX - 8, basqueteGame.ballY);
+    ctx.lineTo(basqueteGame.ballX + 8, basqueteGame.ballY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(basqueteGame.ballX, basqueteGame.ballY - 8);
+    ctx.lineTo(basqueteGame.ballX, basqueteGame.ballY + 8);
+    ctx.stroke();
+
+    let barX = 30, barY = 40, barW = 22, barH = 190;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
+    
+    let gradient = ctx.createLinearGradient(0, barY + barH, 0, barY);
+    gradient.addColorStop(0, '#e74c3c');
+    gradient.addColorStop(0.3, '#f39c12');
+    gradient.addColorStop(0.5, '#2ecc71');
+    gradient.addColorStop(0.7, '#f39c12');
+    gradient.addColorStop(1, '#e74c3c');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(barX, barY, barW, barH);
+    
+    let sweetY1 = barY + barH - (basqueteGame.powerSweetMax / 100) * barH;
+    let sweetY2 = barY + barH - (basqueteGame.powerSweetMin / 100) * barH;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(barX, sweetY1, barW, sweetY2 - sweetY1);
+    ctx.setLineDash([]);
+    
+    let powerY = (basqueteGame.powerLocked >= 0)
+        ? barY + barH - (basqueteGame.powerLocked / 100) * barH
+        : barY + barH - (basqueteGame.powerValue / 100) * barH;
+        
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(barX - 4, powerY - 2, barW + 8, 4);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText('FORÇA', barX - 2, barY - 8);
+
+    let aBarX = 80, aBarY = 260, aBarW = 280, aBarH = 18;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(aBarX - 2, aBarY - 2, aBarW + 4, aBarH + 4);
+    
+    let aGradient = ctx.createLinearGradient(aBarX, 0, aBarX + aBarW, 0);
+    aGradient.addColorStop(0, '#e74c3c');
+    aGradient.addColorStop(0.3, '#f39c12');
+    aGradient.addColorStop(0.5, '#2ecc71');
+    aGradient.addColorStop(0.7, '#f39c12');
+    aGradient.addColorStop(1, '#e74c3c');
+    ctx.fillStyle = aGradient;
+    ctx.fillRect(aBarX, aBarY, aBarW, aBarH);
+    
+    let sweetX1 = aBarX + (basqueteGame.angleSweetMin / 100) * aBarW;
+    let sweetX2 = aBarX + (basqueteGame.angleSweetMax / 100) * aBarW;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(sweetX1, aBarY, sweetX2 - sweetX1, aBarH);
+    ctx.setLineDash([]);
+    
+    let angleX = (basqueteGame.angleLocked >= 0)
+        ? aBarX + (basqueteGame.angleLocked / 100) * aBarW
+        : aBarX + (basqueteGame.angleValue / 100) * aBarW;
+        
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(angleX - 2, aBarY - 4, 4, aBarH + 8);
+    ctx.fillText('ÂNGULO', aBarX + aBarW / 2 - 20, aBarY + aBarH + 12);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, canvas.width, 28);
+    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#f1c40f'; ctx.fillText(`PONTOS: ${basqueteGame.playerScore}`, 15, 19);
+    ctx.fillStyle = '#3498db'; ctx.fillText(`ARREMESSO: ${basqueteGame.round}/${basqueteGame.maxRounds}`, 160, 19);
+    
+    ctx.fillStyle = '#ffffff';
+    let phaseLabel = '';
+    if (basqueteGame.phase === 'POWER') phaseLabel = '► TRAVE A FORÇA!';
+    else if (basqueteGame.phase === 'ANGLE') phaseLabel = '► TRAVE O ÂNGULO!';
+    ctx.fillText(phaseLabel, 300, 19);
+
+    if (basqueteGame.countdownTimer > 0) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px monospace';
+        let countNum = Math.ceil(basqueteGame.countdownTimer / 30);
+        let countText = countNum > 0 ? `${countNum}` : 'GO!';
+        let tw = ctx.measureText(countText).width;
+        ctx.fillText(countText, (canvas.width - tw) / 2, 150);
+    }
+
+    if (basqueteGame.phase === 'RESULT' && basqueteGame.resultText) {
+        ctx.font = 'bold 26px monospace';
+        let color = basqueteGame.shotResult === 'MISS' ? '#e74c3c' : '#2ecc71';
+        if (basqueteGame.shotResult === 'SWISH') color = '#f1c40f';
+        ctx.fillStyle = color;
+        let tw = ctx.measureText(basqueteGame.resultText).width;
+        ctx.fillText(basqueteGame.resultText, (canvas.width - tw) / 2, 130);
+    }
+
+    // OVERLAYS (Telas)
+    if (basqueteGame.phase === 'TUTORIAL') {
+        drawOverlayScreen("BASQUETE", [
+            "Faça pelo menos 8 pontos em " + basqueteGame.maxRounds + " arremessos.",
+            "Aperte ESPAÇO para travar a FORÇA.",
+            "Aperte ESPAÇO para travar o ÂNGULO.",
+            "Tente acertar o centro verde!"
+        ], "#e67e22");
+    } else if (basqueteGame.phase === 'GAMEOVER') {
+        if (basqueteGame.win) {
+            drawOverlayScreen("VITÓRIA!", ["Você fez " + basqueteGame.playerScore + " pontos!", "Insígnia do Basquete conquistada!"], "#2ecc71");
+        } else {
+            drawOverlayScreen("DERROTA...", ["Você fez " + basqueteGame.playerScore + " pontos.", "Faltou pouco, tente novamente!"], "#e74c3c");
+        }
     }
 }
 
@@ -1270,7 +1480,7 @@ function update() {
     } else if (currentScene === "JOGO_BASQUETE") {
         updateBasquete();
     } else if (currentScene === "JOGO_ESCALADA") {
-        updateEscalada();
+        updateEscaladaGame();
     }
 }
 
@@ -1292,10 +1502,27 @@ function resetPingPong(fullReset = false) {
         pingPong.power = 0;
         pingPong.playerX = 50;
         pingPong.playerY = 140;
+        pingPong.gameState = 'TUTORIAL';
+        pingPong.win = false;
     }
 }
 
 function updatePingPong() {
+    if (pingPong.gameState === 'TUTORIAL') {
+        if (keys.space) { pingPong.gameState = 'PLAYING'; keys.space = false; }
+        return;
+    }
+    
+    if (pingPong.gameState === 'GAMEOVER') {
+        if (keys.space) { 
+            currentScene = "ILHA_PINGPONG"; 
+            keys.space = false; 
+            dialogText.innerHTML = pingPong.win ? "> MESTRE: Incrível reflexo! Você conquistou a Insígnia do Ping-Pong!" : "> MESTRE: Treine mais um pouco e tente novamente!";
+            dialogBox.classList.add("show");
+        }
+        return;
+    }
+
     hintText.innerText = "[W A S D] MOVER | [ESPACO] SMASH ESPECIAL!";
 
     let pMoveX = 0, pMoveY = 0;
@@ -1380,13 +1607,11 @@ function updatePingPong() {
 
     if (pingPong.playerScore >= pingPong.maxScore) {
         insignias.pingpong = true;
-        currentScene = "ILHA_PINGPONG";
-        dialogText.innerHTML = "> MESTRE: Incrivel reflexo! Voce conquistou a Insignia do Ping-Pong!";
-        dialogBox.classList.add("show");
+        pingPong.gameState = 'GAMEOVER';
+        pingPong.win = true;
     } else if (pingPong.opponentScore >= pingPong.maxScore) {
-        currentScene = "ILHA_PINGPONG";
-        dialogText.innerHTML = "> MESTRE: Treine mais um pouco e tente novamente!";
-        dialogBox.classList.add("show");
+        pingPong.gameState = 'GAMEOVER';
+        pingPong.win = false;
     }
 }
 
@@ -1683,6 +1908,22 @@ function drawPingPongGame() {
     let barraPreenchida = (pingPong.power / pingPong.maxPower) * 100;
     ctx.fillRect(80, 40, barraPreenchida, 10);
     ctx.strokeStyle = "#fff"; ctx.strokeRect(80, 40, 100, 10);
+
+    // OVERLAYS (Telas)
+    if (pingPong.gameState === 'TUTORIAL') {
+        drawOverlayScreen("PING PONG", [
+            "Chegue a " + pingPong.maxScore + " pontos para vencer.",
+            "Use W A S D para se mover.",
+            "Rebata a bola para carregar sua barra.",
+            "Aperte ESPAÇO para um Smash Especial!"
+        ], "#3498db");
+    } else if (pingPong.gameState === 'GAMEOVER') {
+        if (pingPong.win) {
+            drawOverlayScreen("VITÓRIA!", ["Você derrotou o Mestre e", "ganhou a Insígnia do Ping-Pong!"], "#2ecc71");
+        } else {
+            drawOverlayScreen("DERROTA...", ["O Mestre foi mais rápido.", "Tente novamente!"], "#e74c3c");
+        }
+    }
 }
 
 function drawHUD() {

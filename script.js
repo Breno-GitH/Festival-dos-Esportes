@@ -23,10 +23,10 @@ const insignias = {
 // -------------------------------------------------------------
 const SPRITES_CONFIG = {
     pedras: [
-        { x: 0.665, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Vermelha
-        { x: 0.712, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Laranja
-        { x: 0.762, y: 0.822, w: 0.036, h: 0.058 }, // Pedra Amarela
-        { x: 0.712, y: 0.890, w: 0.036, h: 0.058 }  // Pedra Azul
+        { x: 0.668, y: 0.825, w: 0.030, h: 0.052 }, // Pedra Vermelha
+        { x: 0.715, y: 0.825, w: 0.030, h: 0.052 }, // Pedra Laranja
+        { x: 0.765, y: 0.825, w: 0.030, h: 0.052 }, // Pedra Amarela
+        { x: 0.715, y: 0.893, w: 0.030, h: 0.052 }  // Pedra Azul
     ],
     zorp: {
         idle: { x: 0.90, y: 0.52, w: 0.08, h: 0.22 },
@@ -72,6 +72,15 @@ const imgMestreHit = new Image(); imgMestreHit.src = "mestre_hit.png";
 // Sprites Escalada
 const imgEscaladaSprites = new Image(); 
 imgEscaladaSprites.src = "Sprites_Escalada.png";
+
+const imgMestreEscalada = new Image(); imgMestreEscalada.src = "npc_mestre_escalada.png";
+const imgGuiaTrilha = new Image(); imgGuiaTrilha.src = "npc_guia_trilha.png";
+const imgFotografo = new Image(); imgFotografo.src = "npc_fotografo.png";
+const imgAtleta = new Image(); imgAtleta.src = "npc_atleta.png";
+const imgIniciante = new Image(); imgIniciante.src = "npc_iniciante.png";
+const imgGeologa = new Image(); imgGeologa.src = "npc_geologa.png";
+const imgChef = new Image(); imgChef.src = "npc_chef.png";
+const imgGuarda = new Image(); imgGuarda.src = "npc_guarda.png";
 
 // -------------------------------------------------------------
 // 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO
@@ -137,39 +146,52 @@ function drawOverlayScreen(title, lines, titleColor = "#f1c40f") {
 
 
 // -------------------------------------------------------------
-// MINIGAME ESCALADA
+// MINIGAME ESCALADA (INSPIRADO EM DOODLE CHAMPION ISLAND GAMES)
 // -------------------------------------------------------------
 const escaladaGame = {
     vida: 3,
-    estamina: 100,
-    maxEstamina: 100,
+    maxVida: 3,
+    invulTimer: 0,
+    shakeTimer: 0,
     
     playerX: 225,
     playerY: 220,
     pedraAtual: null,
+    targetPedra: null,
     
     emPulo: false,
     puloProgresso: 0,
-    puloVelocidade: 0.08,
+    puloVelocidade: 0.09,
     startX: 0,
     startY: 0,
     targetX: 0,
     targetY: 0,
-    targetPedra: null,
     
     pedrasGeradas: [],
-    obstaculos: [],
+    objetosCaindo: [],
+    particulas: [],
+    
     alturaAtual: 0,
     alturaTotal: 1200, 
+    checkpointAltura: 0,
+    
+    ventoForca: 0,
+    ventoTimer: 0,
+    ventoDuracao: 0,
+    ventoDirecao: 1, // 1 para direita, -1 para esquerda
+    ventoParticulas: [],
     
     morteMotivo: "",
     isGameOver: false,
-    gameOverTimer: 0,
-
+    
     minimapaX: 20,
     minimapaY: 50,
-    minimapaLargura: 10,
-    minimapaAltura: 200,
+    minimapaLargura: 12,
+    minimapaAltura: 190,
+    
+    mensagemAtual: "",
+    mensagemTimer: 0,
+    mensagensMostradas: {},
     
     gameState: 'TUTORIAL',
     win: false
@@ -177,68 +199,105 @@ const escaladaGame = {
 
 function resetEscalada() {
     escaladaGame.vida = 3;
-    escaladaGame.estamina = 100;
+    escaladaGame.invulTimer = 0;
+    escaladaGame.shakeTimer = 0;
     escaladaGame.playerX = 225;
     escaladaGame.playerY = 220;
     escaladaGame.alturaAtual = 0;
+    escaladaGame.checkpointAltura = 0;
     escaladaGame.emPulo = false;
     escaladaGame.puloProgresso = 0;
     escaladaGame.isGameOver = false;
     escaladaGame.morteMotivo = "";
-    escaladaGame.obstaculos = [];
+    escaladaGame.objetosCaindo = [];
+    escaladaGame.particulas = [];
+    escaladaGame.ventoForca = 0;
+    escaladaGame.ventoTimer = 180;
+    escaladaGame.ventoDuracao = 0;
+    escaladaGame.ventoParticulas = [];
+    escaladaGame.mensagemAtual = "";
+    escaladaGame.mensagemTimer = 0;
+    escaladaGame.mensagensMostradas = {200: false, 500: false, 800: false, 1100: false};
     
     escaladaGame.pedrasGeradas = [
-        { x: 225, y: 220, r: 15 },
-        { x: 170, y: 160, r: 15 },
-        { x: 280, y: 160, r: 15 },
-        { x: 225, y: 100, r: 15 }
+        { x: 225, y: 220, r: 16, tipo: 'normal', id: 1 },
+        { x: 160, y: 160, r: 16, tipo: 'normal', id: 2 },
+        { x: 290, y: 160, r: 16, tipo: 'normal', id: 3 },
+        { x: 225, y: 100, r: 16, tipo: 'moving', baseX: 225, amplitude: 50, speed: 1.2, offset: 0, id: 4 }
     ];
     escaladaGame.pedraAtual = escaladaGame.pedrasGeradas[0];
+    escaladaGame.targetPedra = null;
     escaladaGame.gameState = 'TUTORIAL';
 }
 
+function encontrarMelhorPedra(dirX) {
+    if (escaladaGame.pedrasGeradas.length === 0) return null;
+    
+    let melhor = null;
+    let menorScore = Infinity;
+
+    for (let p of escaladaGame.pedrasGeradas) {
+        if (p === escaladaGame.pedraAtual || p.quebrada) continue;
+
+        let dx = p.x - escaladaGame.playerX;
+        let dy = p.y - escaladaGame.playerY;
+
+        // A pedra precisa estar acima (dy negativo) ou próxima no mesmo nível
+        if (dy < 10 && dy > -180) {
+            let valido = false;
+            if (dirX < 0 && dx < -15) valido = true;
+            else if (dirX > 0 && dx > 15) valido = true;
+            else if (dirX === 0 && Math.abs(dx) <= 90) valido = true;
+
+            if (valido) {
+                let dist = Math.hypot(dx, dy);
+                if (dist < menorScore && dist <= 210) {
+                    menorScore = dist;
+                    melhor = p;
+                }
+            }
+        }
+    }
+    return melhor;
+}
+
 function tentarPular() {
-    if (escaladaGame.emPulo || escaladaGame.estamina < 12 || escaladaGame.isGameOver) return;
+    if (escaladaGame.emPulo || escaladaGame.isGameOver) return;
 
     let dirX = 0;
     if (keys.a) dirX = -1;
     if (keys.d) dirX = 1;
 
-    let melhorPedra = null;
-    let menorDistancia = Infinity;
+    let alvo = encontrarMelhorPedra(dirX);
+    // Se não encontrou na direção exata, tenta a pedra mais próxima acima
+    if (!alvo) alvo = encontrarMelhorPedra(0);
 
-    escaladaGame.pedrasGeradas.forEach(p => {
-        if (p === escaladaGame.pedraAtual) return;
-
-        let dx = p.x - escaladaGame.playerX;
-        let dy = p.y - escaladaGame.playerY;
-
-        if (dy < 5) {
-            let direcaoValida = false;
-
-            if (dirX < 0 && dx < -10) direcaoValida = true;
-            else if (dirX > 0 && dx > 10) direcaoValida = true;
-            else if (dirX === 0 && Math.abs(dx) <= 80) direcaoValida = true;
-
-            if (direcaoValida) {
-                let dist = Math.hypot(dx, dy);
-                if (dist < menorDistancia && dist <= 220) {
-                    menorDistancia = dist;
-                    melhorPedra = p;
-                }
-            }
-        }
-    });
-
-    if (melhorPedra) {
-        escaladaGame.estamina -= 12;
+    if (alvo) {
         escaladaGame.emPulo = true;
         escaladaGame.puloProgresso = 0;
         escaladaGame.startX = escaladaGame.playerX;
         escaladaGame.startY = escaladaGame.playerY;
-        escaladaGame.targetX = melhorPedra.x;
-        escaladaGame.targetY = melhorPedra.y;
-        escaladaGame.targetPedra = melhorPedra;
+        escaladaGame.targetX = alvo.x;
+        escaladaGame.targetY = alvo.y;
+        escaladaGame.targetPedra = alvo;
+
+        // Efeito de poeira de pulo
+        criarPoeira(escaladaGame.playerX, escaladaGame.playerY, '#8d6e63', 5);
+    }
+}
+
+function criarPoeira(x, y, cor, qtd = 6) {
+    for (let i = 0; i < qtd; i++) {
+        escaladaGame.particulas.push({
+            x: x + (Math.random() * 16 - 8),
+            y: y + (Math.random() * 10 - 5),
+            vx: (Math.random() - 0.5) * 2.5,
+            vy: (Math.random() - 0.5) * 2 - 1,
+            life: 20 + Math.random() * 15,
+            maxLife: 35,
+            cor: cor,
+            r: 2 + Math.random() * 2.5
+        });
     }
 }
 
@@ -247,24 +306,56 @@ function atualizarAnimacaoPulo() {
 
     escaladaGame.puloProgresso += escaladaGame.puloVelocidade;
 
+    // Atualiza destino se a pedra de destino for móvel
+    if (escaladaGame.targetPedra && escaladaGame.targetPedra.tipo === 'moving') {
+        escaladaGame.targetX = escaladaGame.targetPedra.x;
+    }
+
     if (escaladaGame.puloProgresso >= 1) {
         escaladaGame.puloProgresso = 1;
         escaladaGame.emPulo = false;
         escaladaGame.playerX = escaladaGame.targetX;
         escaladaGame.playerY = escaladaGame.targetY;
         escaladaGame.pedraAtual = escaladaGame.targetPedra;
+        escaladaGame.targetPedra = null;
+
+        // Chegada na pedra
+        if (escaladaGame.pedraAtual) {
+            criarPoeira(escaladaGame.playerX, escaladaGame.playerY, '#d7ccc8', 6);
+            
+            // Pedra quebradiça começa a rachar
+            if (escaladaGame.pedraAtual.tipo === 'brittle') {
+                escaladaGame.pedraAtual.quebrando = true;
+            }
+            
+            // Checkpoint / Lanterna recupera vida
+            if (escaladaGame.pedraAtual.tipo === 'checkpoint' && !escaladaGame.pedraAtual.coletado) {
+                escaladaGame.pedraAtual.coletado = true;
+                if (escaladaGame.vida < escaladaGame.maxVida) {
+                    escaladaGame.vida++;
+                }
+                escaladaGame.checkpointAltura = escaladaGame.alturaAtual;
+                criarPoeira(escaladaGame.playerX, escaladaGame.playerY, '#f1c40f', 15);
+            }
+        }
     } else {
         const t = escaladaGame.puloProgresso;
-        escaladaGame.playerX = escaladaGame.startX + (escaladaGame.targetX - escaladaGame.startX) * t;
+        // Interpolação com influência de vento
+        let ventoDesvio = 0;
+        if (escaladaGame.ventoDuracao > 0) {
+            ventoDesvio = Math.sin(t * Math.PI) * (escaladaGame.ventoForca * 12);
+        }
+        
+        escaladaGame.playerX = escaladaGame.startX + (escaladaGame.targetX - escaladaGame.startX) * t + ventoDesvio;
 
-        const alturaArco = 30; 
+        const alturaArco = 32; 
         const interpolacaoY = escaladaGame.startY + (escaladaGame.targetY - escaladaGame.startY) * t;
         escaladaGame.playerY = interpolacaoY - Math.sin(t * Math.PI) * alturaArco;
     }
 }
 
 function atualizarCameraEMundo() {
-    const limiteTelaY = 180;
+    const limiteTelaY = 175;
 
     if (escaladaGame.playerY < limiteTelaY) {
         const diferenca = limiteTelaY - escaladaGame.playerY;
@@ -282,23 +373,96 @@ function atualizarCameraEMundo() {
     }
 }
 
+let pedraIdCounter = 10;
 function gerarNovaCamadaDePedras() {
     let menorY = escaladaGame.pedrasGeradas.length > 0 
         ? Math.min(...escaladaGame.pedrasGeradas.map(p => p.y)) 
         : 180;
         
-    for (let i = 0; i < 2; i++) {
-        escaladaGame.pedrasGeradas.push({
-            x: 60 + (i * 160) + (Math.random() * 60 - 30),
-            y: menorY - 45 - Math.random() * 20,
-            r: 15
-        });
+    // Progresso relativo
+    const progresso = escaladaGame.alturaAtual / escaladaGame.alturaTotal;
+    
+    // Chance de tipos especiais baseado na altitude
+    const tipos = ['normal', 'normal'];
+    if (progresso > 0.15) tipos.push('moving');
+    if (progresso > 0.3) tipos.push('brittle');
+    if (progresso > 0.5) tipos.push('moving', 'brittle');
+
+    // A cada ~300m gera um checkpoint lanterna
+    const proxCheckpoint = Math.floor((escaladaGame.alturaAtual + 100) / 300) * 300;
+    const isCheckpoint = (proxCheckpoint > 0 && Math.abs(escaladaGame.alturaAtual - proxCheckpoint) < 60);
+
+    const qtd = isCheckpoint ? 1 : 2;
+    for (let i = 0; i < qtd; i++) {
+        let posX = isCheckpoint ? 225 : (70 + (i * 150) + (Math.random() * 60 - 30));
+        let posY = menorY - 50 - Math.random() * 20;
+        let tipo = isCheckpoint ? 'checkpoint' : tipos[Math.floor(Math.random() * tipos.length)];
+
+        let novaPedra = {
+            id: ++pedraIdCounter,
+            x: posX,
+            y: posY,
+            r: isCheckpoint ? 18 : 15,
+            tipo: tipo
+        };
+
+        if (tipo === 'moving') {
+            novaPedra.baseX = posX;
+            novaPedra.amplitude = 40 + Math.random() * 35;
+            novaPedra.speed = 1.0 + Math.random() * 1.2;
+            novaPedra.offset = Math.random() * Math.PI * 2;
+        } else if (tipo === 'brittle') {
+            novaPedra.tempoRestante = 45; // ~0.75 segundos antes de quebrar
+            novaPedra.quebrando = false;
+            novaPedra.quebrada = false;
+        } else if (tipo === 'checkpoint') {
+            novaPedra.coletado = false;
+        }
+
+        escaladaGame.pedrasGeradas.push(novaPedra);
     }
 }
 
 function gerenciarPedras() {
     const alturaTela = canvas.height || 300;
-    escaladaGame.pedrasGeradas = escaladaGame.pedrasGeradas.filter(pedra => pedra.y < alturaTela + 50);
+    
+    // Atualiza pedras móveis e quebradiças
+    const now = Date.now();
+    for (let p of escaladaGame.pedrasGeradas) {
+        if (p.tipo === 'moving') {
+            p.x = p.baseX + Math.sin(now * 0.0025 * p.speed + p.offset) * p.amplitude;
+            // Se o jogador estiver nesta pedra móvel e não estiver pulando, move junto
+            if (escaladaGame.pedraAtual === p && !escaladaGame.emPulo) {
+                escaladaGame.playerX = p.x;
+            }
+        } else if (p.tipo === 'brittle' && p.quebrando && !p.quebrada) {
+            p.tempoRestante--;
+            if (Math.random() < 0.3) {
+                criarPoeira(p.x, p.y, '#e74c3c', 2);
+            }
+            if (p.tempoRestante <= 0) {
+                p.quebrada = true;
+                criarPoeira(p.x, p.y, '#c0392b', 12);
+                escaladaGame.shakeTimer = 8;
+                
+                // Se o jogador ainda estiver nela, cai e perde vida
+                if (escaladaGame.pedraAtual === p && !escaladaGame.emPulo) {
+                    aplicarDanoJogador("A pedra desmoronou sob seus pés!");
+                    // Tenta recolocar em uma pedra abaixo
+                    let pedrasAbaixo = escaladaGame.pedrasGeradas.filter(item => item !== p && !item.quebrada && item.y > p.y);
+                    if (pedrasAbaixo.length > 0) {
+                        pedrasAbaixo.sort((a, b) => a.y - b.y);
+                        escaladaGame.pedraAtual = pedrasAbaixo[0];
+                        escaladaGame.playerX = escaladaGame.pedraAtual.x;
+                        escaladaGame.playerY = escaladaGame.pedraAtual.y;
+                    }
+                }
+            }
+        }
+    }
+
+    // Remove pedras que saíram da tela por baixo
+    escaladaGame.pedrasGeradas = escaladaGame.pedrasGeradas.filter(pedra => pedra.y < alturaTela + 60);
 
     if (escaladaGame.pedrasGeradas.length === 0) {
         gerarNovaCamadaDePedras();
@@ -306,20 +470,111 @@ function gerenciarPedras() {
     }
 
     let menorY = Math.min(...escaladaGame.pedrasGeradas.map(p => p.y));
-    if (menorY > 30) {
+    if (menorY > 40) {
         gerarNovaCamadaDePedras();
     }
 }
 
-function voltarMundoReal() {
-    finalizarMinigame("DERROTA");
+function aplicarDanoJogador(motivo) {
+    if (escaladaGame.invulTimer > 0 || escaladaGame.isGameOver) return;
+
+    escaladaGame.vida--;
+    escaladaGame.invulTimer = 60; // 1 segundo invulnerável
+    escaladaGame.shakeTimer = 12; // Tremor de tela
+
+    if (escaladaGame.vida <= 0) {
+        finalizarMinigame("DERROTA");
+    }
 }
 
-function resetarPosicaoJogador() {
-    escaladaGame.playerX = 225;
-    escaladaGame.playerY = 220;
-    escaladaGame.emPulo = false;
-    escaladaGame.estamina = 100;
+function gerenciarVento() {
+    if (escaladaGame.ventoDuracao > 0) {
+        escaladaGame.ventoDuracao--;
+        
+        // Gera partículas visuais de vento
+        if (Math.random() < 0.7) {
+            escaladaGame.ventoParticulas.push({
+                x: escaladaGame.ventoDirecao > 0 ? -20 : canvas.width + 20,
+                y: Math.random() * canvas.height,
+                vx: escaladaGame.ventoDirecao * (6 + Math.random() * 4),
+                vy: (Math.random() - 0.5) * 1.5,
+                len: 20 + Math.random() * 25,
+                alpha: 0.8
+            });
+        }
+    } else {
+        escaladaGame.ventoForca = 0;
+        escaladaGame.ventoTimer--;
+        if (escaladaGame.ventoTimer <= 0) {
+            // Inicia nova rajada de vento
+            escaladaGame.ventoDuracao = 180 + Math.floor(Math.random() * 120); // 3 a 5 seg
+            escaladaGame.ventoTimer = 350 + Math.floor(Math.random() * 250);
+            escaladaGame.ventoDirecao = Math.random() < 0.5 ? 1 : -1;
+            escaladaGame.ventoForca = 1.0 + Math.random() * 0.8;
+        }
+    }
+
+    // Atualiza partículas de vento
+    for (let i = escaladaGame.ventoParticulas.length - 1; i >= 0; i--) {
+        let vp = escaladaGame.ventoParticulas[i];
+        vp.x += vp.vx;
+        vp.y += vp.vy;
+        vp.alpha -= 0.015;
+        if (vp.alpha <= 0 || vp.x < -50 || vp.x > canvas.width + 50) {
+            escaladaGame.ventoParticulas.splice(i, 1);
+        }
+    }
+}
+
+function gerenciarObjetosCaindo() {
+    const progresso = escaladaGame.alturaAtual / escaladaGame.alturaTotal;
+    
+    // Chance de objetos caindo cresce com a altitude
+    const chance = 0.018 + progresso * 0.035;
+    if (Math.random() < chance) {
+        const isSnowball = Math.random() < 0.5;
+        escaladaGame.objetosCaindo.push({
+            x: 40 + Math.random() * (canvas.width - 80),
+            y: escaladaGame.playerY - canvas.height - 20,
+            speed: 2.5 + Math.random() * 2.5 + progresso * 1.5,
+            r: isSnowball ? 10 : 8,
+            type: isSnowball ? 'snowball' : 'boulder',
+            rotacao: 0
+        });
+    }
+
+    const cameraY = escaladaGame.playerY - canvas.height * 0.6;
+    
+    for (let i = escaladaGame.objetosCaindo.length - 1; i >= 0; i--) {
+        let obj = escaladaGame.objetosCaindo[i];
+        obj.y += obj.speed;
+        obj.rotacao += 0.1;
+
+        // Colisão com Zorp
+        let dx = obj.x - escaladaGame.playerX;
+        let dy = obj.y - escaladaGame.playerY;
+        let dist = Math.hypot(dx, dy);
+
+        if (dist < obj.r + 14) {
+            criarPoeira(obj.x, obj.y, obj.type === 'snowball' ? '#ffffff' : '#795548', 10);
+            aplicarDanoJogador("Atingido por pedras da montanha!");
+            escaladaGame.objetosCaindo.splice(i, 1);
+        } else if (obj.y > cameraY + canvas.height + 60) {
+            escaladaGame.objetosCaindo.splice(i, 1);
+        }
+    }
+}
+
+function gerenciarParticulas() {
+    for (let i = escaladaGame.particulas.length - 1; i >= 0; i--) {
+        let p = escaladaGame.particulas[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) {
+            escaladaGame.particulas.splice(i, 1);
+        }
+    }
 }
 
 function checarVitoriaEscalada() {
@@ -334,15 +589,18 @@ function finalizarMinigame(resultado) {
     escaladaGame.win = (resultado === "VITORIA");
     if (resultado === "VITORIA") {
         insignias.escalada = true;
-        dialogText.innerHTML = "> MESTRE DA ESCALADA: Incrível! Você alcançou o topo do monte!";
+        dialogText.innerHTML = "> MESTRE DA ESCALADA: Espetacular! Você dominou o Monte Zorp e conquistou a Insígnia da Escalada!";
     } else {
-        dialogText.innerHTML = "> MESTRE DA ESCALADA: Gerencie melhor sua estamina para continuar subindo.";
+        dialogText.innerHTML = "> MESTRE DA ESCALADA: A montanha exige reflexos rápidos! Desvie das pedras e cuidado com as rochas frágeis.";
     }
 }
 
 function updateEscaladaGame() {
     if (escaladaGame.gameState === 'TUTORIAL') {
-        if (keys.space) { escaladaGame.gameState = 'PLAYING'; keys.space = false; }
+        if (keys.space) { 
+            escaladaGame.gameState = 'PLAYING'; 
+            keys.space = false; 
+        }
         return;
     }
     
@@ -357,148 +615,348 @@ function updateEscaladaGame() {
 
     if (escaladaGame.isGameOver) return;
 
-    hintText.innerText = "[W A D] DIREÇÃO + [ESPAÇO] PARA PULAR DE PEDRA EM PEDRA";
+    // Atualiza timers de invulnerabilidade e tremor
+    if (escaladaGame.invulTimer > 0) escaladaGame.invulTimer--;
+    if (escaladaGame.shakeTimer > 0) escaladaGame.shakeTimer--;
 
-    if (keys.space && !escaladaGame.emPulo) {
+    hintText.innerText = "[A / D] MIRAR NA PEDRA  |  [ESPAÇO] OU [W] PULAR  |  CUIDADO COM AS PEDRAS MÓVEIS!";
+
+    // Identifica mira na pedra mais próxima
+    let dirX = 0;
+    if (keys.a) dirX = -1;
+    if (keys.d) dirX = 1;
+    escaladaGame.targetPedra = encontrarMelhorPedra(dirX);
+    if (!escaladaGame.targetPedra) escaladaGame.targetPedra = encontrarMelhorPedra(0);
+
+    if ((keys.space || keys.w) && !escaladaGame.emPulo) {
         tentarPular();
         keys.space = false;
+        keys.w = false;
     }
 
     atualizarAnimacaoPulo();
-
-    if (!escaladaGame.emPulo && escaladaGame.estamina < escaladaGame.maxEstamina) {
-        escaladaGame.estamina = Math.min(escaladaGame.maxEstamina, escaladaGame.estamina + 0.1);
-    }
-
-    // Exemplo simplificado para simular falha por estamina (para acionar derrota)
-    if (escaladaGame.estamina <= 0) {
-        finalizarMinigame("DERROTA");
-    }
-
     atualizarCameraEMundo();
     gerenciarPedras();
+    gerenciarVento();
+    gerenciarObjetosCaindo();
+    gerenciarParticulas();
+    
+    // Mensagens do Mestre ao longo da subida (estilo Champion Island)
+    const marcos = [200, 500, 800, 1100];
+    const textos = [
+        "MESTRE: Bom começo! Desvie das pedras que estou rolando!",
+        "MESTRE: Vento forte à frente! Cuidado ao calcular seus pulos!",
+        "MESTRE: Rochas frágeis! Não fique parado muito tempo nelas!",
+        "MESTRE: Você está quase no cume! Mostre do que é capaz!"
+    ];
+    for (let i = 0; i < marcos.length; i++) {
+        if (escaladaGame.alturaAtual >= marcos[i] && !escaladaGame.mensagensMostradas[marcos[i]]) {
+            escaladaGame.mensagemAtual = textos[i];
+            escaladaGame.mensagemTimer = 190;
+            escaladaGame.mensagensMostradas[marcos[i]] = true;
+        }
+    }
+    
+    if (escaladaGame.mensagemTimer > 0) {
+        escaladaGame.mensagemTimer--;
+    }
+
     checarVitoriaEscalada();
-}
-
-function drawMiniMap(ctx) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.fillRect(
-        escaladaGame.minimapaX, 
-        escaladaGame.minimapaY, 
-        escaladaGame.minimapaLargura, 
-        escaladaGame.minimapaAltura
-    );
-
-    const progresso = Math.min(1, escaladaGame.alturaAtual / escaladaGame.alturaTotal);
-    const posicaoJogadorY = escaladaGame.minimapaY + escaladaGame.minimapaAltura - (progresso * escaladaGame.minimapaAltura);
-
-    ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(escaladaGame.minimapaX - 5, posicaoJogadorY, 20, 6);
-
-    ctx.fillStyle = "#f1c40f";
-    ctx.fillRect(escaladaGame.minimapaX - 5, escaladaGame.minimapaY, 20, 6);
 }
 
 function drawEscaladaGame() {
     const cameraY = escaladaGame.playerY - canvas.height * 0.6;
+    
+    // Efeito de Tremor de Tela
+    let shakeX = 0, shakeY = 0;
+    if (escaladaGame.shakeTimer > 0) {
+        shakeX = (Math.random() - 0.5) * 6;
+        shakeY = (Math.random() - 0.5) * 6;
+    }
 
-    ctx.fillStyle = "#3e2723";
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    // 1. Fundo da Parede Montanhosa com gradiente de altitude
+    const progresso = Math.min(1, escaladaGame.alturaAtual / escaladaGame.alturaTotal);
+    let gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    if (progresso < 0.4) {
+        gradiente.addColorStop(0, "#4e342e");
+        gradiente.addColorStop(1, "#3e2723");
+    } else if (progresso < 0.8) {
+        gradiente.addColorStop(0, "#37474f");
+        gradiente.addColorStop(1, "#4e342e");
+    } else {
+        gradiente.addColorStop(0, "#263238");
+        gradiente.addColorStop(1, "#37474f");
+    }
+    ctx.fillStyle = gradiente;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const imgPronta = imgEscaladaSprites.complete && imgEscaladaSprites.naturalWidth > 0;
-    const iw = imgEscaladaSprites.width;
-    const ih = imgEscaladaSprites.height;
+    // Textura rochosa e fendas nas montanhas
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 6; i++) {
+        let fendaY = ((i * 70 - (escaladaGame.alturaAtual * 0.5)) % (canvas.height + 70));
+        ctx.beginPath();
+        ctx.moveTo(30 + (i * 65), fendaY);
+        ctx.lineTo(50 + (i * 65), fendaY + 30);
+        ctx.lineTo(40 + (i * 65), fendaY + 60);
+        ctx.stroke();
+    }
 
-    // Desenhar Pedras
-    escaladaGame.pedrasGeradas.forEach((p, index) => {
+    // 2. Partículas de Poeira / Fragmentos
+    escaladaGame.particulas.forEach(p => {
+        const renderY = p.y - cameraY;
+        ctx.fillStyle = p.cor;
+        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+        ctx.beginPath();
+        ctx.arc(p.x, renderY, p.r, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // 3. Desenhar Pedras / Agarras de Escalada
+    escaladaGame.pedrasGeradas.forEach((p) => {
+        if (p.quebrada) return;
         const renderY = p.y - cameraY;
 
-        if (renderY + p.r > -50 && renderY - p.r < canvas.height + 50) {
-            if (imgPronta) {
-                const spritePedra = SPRITES_CONFIG.pedras[index % SPRITES_CONFIG.pedras.length];
-                const renderSize = p.r * 2.2;
+        if (renderY + p.r > -40 && renderY - p.r < canvas.height + 40) {
+            let shakePedraX = 0;
+            if (p.tipo === 'brittle' && p.quebrando) {
+                shakePedraX = (Math.random() - 0.5) * 4;
+            }
 
-                if (escaladaGame.pedraAtual === p || escaladaGame.targetPedra === p) {
-                    ctx.shadowColor = "#f1c40f";
-                    ctx.shadowBlur = 12;
-                }
+            // Indicador de Mira / Próximo Alvo
+            if (escaladaGame.targetPedra === p && !escaladaGame.emPulo) {
+                ctx.strokeStyle = "#f1c40f";
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(p.x + shakePedraX, renderY, p.r + 5 + Math.sin(Date.now() * 0.01) * 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
-                ctx.drawImage(
-                    imgEscaladaSprites,
-                    spritePedra.x * iw, spritePedra.y * ih, spritePedra.w * iw, spritePedra.h * ih,
-                    p.x - renderSize / 2, renderY - renderSize / 2,
-                    renderSize, renderSize
-                );
+            // Renderiza de acordo com o tipo de pedra
+            if (p.tipo === 'moving') {
+                // Pedra Móvel (Azul Cristalina com brilho)
+                ctx.fillStyle = "#0288d1";
+                ctx.shadowColor = "#29b6f6";
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(p.x + shakePedraX, renderY, p.r + 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#81d4fa";
+                ctx.beginPath();
+                ctx.arc(p.x + shakePedraX - 3, renderY - 3, p.r * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (p.tipo === 'brittle') {
+                // Pedra Quebradiça (Avermelhada/Rachada)
+                ctx.fillStyle = p.quebrando ? "#e74c3c" : "#d35400";
+                ctx.beginPath();
+                ctx.arc(p.x + shakePedraX, renderY, p.r, 0, Math.PI * 2);
+                ctx.fill();
+                // Rachaduras
+                ctx.strokeStyle = "#2c3e50";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(p.x - 6 + shakePedraX, renderY - 6);
+                ctx.lineTo(p.x + 2 + shakePedraX, renderY);
+                ctx.lineTo(p.x + 6 + shakePedraX, renderY + 6);
+                ctx.stroke();
+            } else if (p.tipo === 'checkpoint') {
+                // Lanterna / Ponto de Descanso Dourado
+                ctx.fillStyle = "#f39c12";
+                ctx.shadowColor = "#f1c40f";
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(p.x, renderY, p.r + 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#fff9c4";
+                ctx.beginPath();
+                ctx.arc(p.x, renderY, p.r * 0.5, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.shadowBlur = 0;
             } else {
+                // Pedra Normal de Montanha (Textura Rústica)
                 ctx.fillStyle = (escaladaGame.pedraAtual === p) ? "#f1c40f" : "#8d6e63";
                 ctx.beginPath();
                 ctx.arc(p.x, renderY, p.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "rgba(255,255,255,0.2)";
+                ctx.beginPath();
+                ctx.arc(p.x - 3, renderY - 3, p.r * 0.4, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
     });
 
-    // Desenhar Jogador
+    // 4. Desenhar Jogador (Zorp)
     const playerRenderY = escaladaGame.playerY - cameraY;
+    const isBlinking = (escaladaGame.invulTimer > 0 && Math.floor(Date.now() / 80) % 2 === 0);
 
-    if (imgPronta) {
-        let currentSprite = escaladaGame.emPulo 
-            ? SPRITES_CONFIG.zorp.subindo[Math.floor((Date.now() / 120) % SPRITES_CONFIG.zorp.subindo.length)]
-            : SPRITES_CONFIG.zorp.idle;
-
-        const zorpW = 48;
-        const zorpH = 64;
-
-        ctx.drawImage(
-            imgEscaladaSprites,
-            currentSprite.x * iw, currentSprite.y * ih, currentSprite.w * iw, currentSprite.h * ih,
-            escaladaGame.playerX - zorpW / 2, playerRenderY - zorpH / 2,
-            zorpW, zorpH
-        );
-    } else {
-        ctx.fillStyle = "#2ecc71";
-        ctx.beginPath();
-        ctx.arc(escaladaGame.playerX, playerRenderY, 12, 0, Math.PI * 2);
-        ctx.fill();
+    if (!isBlinking) {
+        if (zorpImg.complete && zorpImg.naturalWidth > 0) {
+            // Desenha o sprite do Zorp
+            const zW = 40, zH = 48;
+            ctx.drawImage(zorpImg, 0, 0, 32, 32, escaladaGame.playerX - zW / 2, playerRenderY - zH + 10, zW, zH);
+        } else {
+            ctx.fillStyle = "#2ecc71";
+            ctx.beginPath();
+            ctx.arc(escaladaGame.playerX, playerRenderY, 14, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
-    // HUD
-    drawMiniMap(ctx);
+    // 5. Desenhar Objetos Caindo (Pedras e Bolas de Neve do Mestre)
+    escaladaGame.objetosCaindo.forEach(obj => {
+        const renderY = obj.y - cameraY;
+        if (obj.type === 'snowball') {
+            // Bola de Neve
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(obj.x, renderY, obj.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#b0bec5";
+            ctx.beginPath();
+            ctx.arc(obj.x - 2, renderY - 2, obj.r * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Pedregulho
+            ctx.fillStyle = "#5d4037";
+            ctx.beginPath();
+            ctx.arc(obj.x, renderY, obj.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#8d6e63";
+            ctx.beginPath();
+            ctx.arc(obj.x - 2, renderY - 2, obj.r * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
 
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fillRect(0, 0, canvas.width, 30);
+    // 6. Desenhar Vento (Linhas e Rajadas)
+    if (escaladaGame.ventoParticulas.length > 0) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        escaladaGame.ventoParticulas.forEach(vp => {
+            ctx.globalAlpha = vp.alpha;
+            ctx.beginPath();
+            ctx.moveTo(vp.x, vp.y);
+            ctx.lineTo(vp.x + vp.vx * 3, vp.y + vp.vy * 3);
+            ctx.stroke();
+        });
+        ctx.globalAlpha = 1.0;
+    }
 
-    ctx.fillStyle = "#e74c3c";
-    ctx.font = "bold 13px monospace";
-    ctx.fillText(`VIDAS: ${"♥".repeat(Math.max(0, escaladaGame.vida))}`, 120, 20);
+    // 7. Mestre no Topo da Montanha com a Bandeira
+    const topoDist = (escaladaGame.alturaTotal - escaladaGame.alturaAtual);
+    const topoRenderY = escaladaGame.playerY - topoDist - cameraY;
+    if (topoRenderY > -150 && topoRenderY < canvas.height) {
+        // Platô do Cume
+        ctx.fillStyle = "#eceff1";
+        ctx.fillRect(80, topoRenderY + 30, canvas.width - 160, 20);
+        
+        // Bandeira da Vitória
+        ctx.fillStyle = "#f1c40f";
+        ctx.fillRect(220, topoRenderY - 10, 4, 40);
+        ctx.fillStyle = "#e74c3c";
+        ctx.beginPath();
+        ctx.moveTo(224, topoRenderY - 10);
+        ctx.lineTo(250, topoRenderY);
+        ctx.lineTo(224, topoRenderY + 10);
+        ctx.closePath();
+        ctx.fill();
 
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 12px monospace";
-    ctx.fillText("ESTAMINA:", 230, 20);
-    ctx.fillStyle = "#333";
-    ctx.fillRect(300, 8, 100, 14);
-    ctx.fillStyle = escaladaGame.estamina > 30 ? "#2ecc71" : "#e74c3c";
-    ctx.fillRect(300, 8, Math.max(0, escaladaGame.estamina), 14);
-    ctx.strokeStyle = "#fff";
-    ctx.strokeRect(300, 8, 100, 14);
+        // Mestre esperando no topo
+        if (imgMestreEscalada.complete) {
+            ctx.drawImage(imgMestreEscalada, 260, topoRenderY - 20, 36, 54);
+        }
+    }
 
+    ctx.restore(); // Restaura contexto pós-tremor de tela
+
+    // 8. HUD (Interface Superior e Minimapa)
+    // Minimapa
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(escaladaGame.minimapaX, escaladaGame.minimapaY, escaladaGame.minimapaLargura, escaladaGame.minimapaAltura);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(escaladaGame.minimapaX, escaladaGame.minimapaY, escaladaGame.minimapaLargura, escaladaGame.minimapaAltura);
+
+    const progressoMini = Math.min(1, escaladaGame.alturaAtual / escaladaGame.alturaTotal);
+    const posZorpY = escaladaGame.minimapaY + escaladaGame.minimapaAltura - (progressoMini * escaladaGame.minimapaAltura);
+
+    // Marcador do Topo
     ctx.fillStyle = "#f1c40f";
-    ctx.fillText(`ALTURA: ${Math.floor(escaladaGame.alturaAtual)}m`, 410, 20);
+    ctx.fillRect(escaladaGame.minimapaX - 3, escaladaGame.minimapaY, 18, 4);
+
+    // Marcador do Zorp
+    ctx.fillStyle = "#2ecc71";
+    ctx.fillRect(escaladaGame.minimapaX - 4, posZorpY - 2, 20, 5);
+
+    // Barra de Status Superior
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(0, 0, canvas.width, 32);
+
+    // Vidas (Corações)
+    ctx.fillStyle = "#e74c3c";
+    ctx.font = "bold 15px monospace";
+    let coracoes = "";
+    for (let v = 0; v < escaladaGame.maxVida; v++) {
+        coracoes += (v < escaladaGame.vida) ? "♥ " : "♡ ";
+    }
+    ctx.fillText(`VIDAS: ${coracoes}`, 80, 21);
+
+    // Altura Atual
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`ALTITUDE: ${Math.floor(escaladaGame.alturaAtual)}m / ${escaladaGame.alturaTotal}m`, 250, 21);
+
+    // Indicador de Vento no HUD
+    if (escaladaGame.ventoDuracao > 0) {
+        ctx.fillStyle = (Date.now() % 400 < 200) ? "#00e5ff" : "#ffffff";
+        ctx.font = "bold 11px monospace";
+        let setaVento = escaladaGame.ventoDirecao > 0 ? ">>>" : "<<<";
+        ctx.fillText(`VENTO ${setaVento}`, canvas.width - 90, 21);
+    }
+
+    // 9. Caixa de Diálogo do Mestre (Estilo Doodle Champion Island)
+    if (escaladaGame.mensagemTimer > 0) {
+        ctx.fillStyle = "rgba(20, 20, 30, 0.9)";
+        ctx.fillRect(40, 42, canvas.width - 80, 44);
+        ctx.strokeStyle = "#f1c40f";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(40, 42, canvas.width - 80, 44);
+        
+        if (imgMestreEscalada.complete) {
+            ctx.drawImage(imgMestreEscalada, 45, 45, 26, 38);
+        }
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText(escaladaGame.mensagemAtual, 80, 68);
+    }
     
-    // OVERLAYS (Telas)
+    // 10. Telas de Tutorial e Fim de Jogo
     if (escaladaGame.gameState === 'TUTORIAL') {
-        drawOverlayScreen("ESCALADA", [
-            "Chegue ao topo do monte (1200m).",
-            "Use A, D para escolher a pedra.",
-            "Aperte ESPAÇO para pular.",
-            "Cuidado para não zerar sua estamina!"
-        ], "#9b59b6");
+        drawOverlayScreen("ESCALADA NO MONTE ZORP", [
+            "Chegue ao cume do monte (1200m)!",
+            "Use [A / D] para mirar na pedra desejada.",
+            "Aperte [ESPAÇO] ou [W] para saltar de pedra em pedra.",
+            "CUIDADO: Pedras azuis se movem, pedras vermelhas quebram!",
+            "Desvie dos pedregulhos e bolas de neve que rolam do topo!"
+        ], "#f1c40f");
     } else if (escaladaGame.gameState === 'GAMEOVER') {
         if (escaladaGame.win) {
-            drawOverlayScreen("VITÓRIA!", ["Você chegou ao topo e", "ganhou a Insígnia da Escalada!"], "#2ecc71");
+            drawOverlayScreen("VITÓRIA NO CUME!", [
+                "Você superou os ventos e pedregulhos!",
+                "Alcançou o topo e conquistou a Insígnia da Escalada!"
+            ], "#2ecc71");
         } else {
-            drawOverlayScreen("DERROTA...", ["Sua estamina acabou ou você caiu.", "Tente novamente!"], "#e74c3c");
+            drawOverlayScreen("QUEDA NA MONTANHA...", [
+                "A montanha é implacável!",
+                "Mantenha o ritmo, desvie das pedras e tente novamente!"
+            ], "#e74c3c");
         }
     }
 }
@@ -1266,9 +1724,15 @@ const sceneObstacles = {
         { x: 330, y: 180, w: 60, h: 30, type: 'bleachers', solid: true }
     ],
     ILHA_ESCALADA: [
-        { x: 70, y: 60, w: 30, h: 30, type: 'boulder', solid: true },
-        { x: 350, y: 60, w: 30, h: 30, type: 'boulder', solid: true },
-        { x: 90, y: 200, w: 40, h: 40, type: 'tent', solid: true }
+        { x: 45, y: 190, w: 40, h: 35, type: 'tent', solid: true },
+        { x: 130, y: 220, w: 25, h: 25, type: 'campfire', solid: true },
+        { x: 110, y: 140, w: 20, h: 25, type: 'trail_sign', solid: true },
+        { x: 330, y: 140, w: 25, h: 20, type: 'climbing_gear', solid: true },
+        { x: 35, y: 65, w: 25, h: 35, type: 'pine_tree', solid: true },
+        { x: 385, y: 65, w: 25, h: 35, type: 'pine_tree', solid: true },
+        { x: 390, y: 200, w: 25, h: 35, type: 'pine_tree', solid: true },
+        { x: 80, y: 70, w: 30, h: 30, type: 'boulder', solid: true },
+        { x: 340, y: 70, w: 30, h: 30, type: 'boulder', solid: true }
     ],
     ILHA_ESQUI: [
         { x: 60, y: 70, w: 25, h: 35, type: 'pine_tree', solid: true },
@@ -1294,7 +1758,13 @@ const npcs = [
     { scene: "ILHA_BASQUETE", x: 225, y: 80, img: imgGuia, tamanho: 48, msg: "> MESTRE DO BASQUETE: Marque pontos antes do tempo acabar!", isMaster: "JOGO_BASQUETE" },
     { scene: "ILHA_ARCO", x: 225, y: 80, img: imgAprendiz, tamanho: 48, msg: "> MESTRE ARQUEIRO: Acerte os alvos mais rápidos que eu!", isMaster: "JOGO_ARCO" },
     { scene: "ILHA_CORRIDA", x: 225, y: 80, img: imgAlpinista, tamanho: 48, msg: "> MESTRE DA CORRIDA: Mantenha o ritmo para não cansar!", isMaster: "JOGO_CORRIDA" },
-    { scene: "ILHA_ESCALADA", x: 225, y: 80, img: imgMestreGelo, tamanho: 48, msg: "> MESTRE DA ESCALADA: Mantenha firme as mãos nas pedras!", isMaster: "JOGO_ESCALADA" },
+    
+    // NPCs da Ilha da Escalada (Reduzidos para 4 icônicos e bem posicionados)
+    { scene: "ILHA_ESCALADA", x: 225, y: 70, img: imgMestreEscalada, tamanho: 48, msg: "> MESTRE DA ESCALADA: O Monte Zorp não perdoa os fracos! Desvie das pedras e alcance o cume!", isMaster: "JOGO_ESCALADA" },
+    { scene: "ILHA_ESCALADA", x: 80, y: 140, img: imgGuiaTrilha, tamanho: 48, msg: "> GUIA DE TRILHA: Cuidado lá em cima! O vento sopra forte e algumas pedras rachadas quebram ao pisar!" },
+    { scene: "ILHA_ESCALADA", x: 370, y: 140, img: imgGeologa, tamanho: 48, msg: "> GEÓLOGA: As pedras azuis deslizam pela montanha, e as vermelhas estão prestes a desmoronar!" },
+    { scene: "ILHA_ESCALADA", x: 95, y: 220, img: imgChef, tamanho: 48, msg: "> CHEF DE ACAMPAMENTO: Uma sopa bem quente para dar energia antes de enfrentar a montanha!" },
+    
     { scene: "ILHA_SURF", x: 225, y: 80, img: imgTurista, tamanho: 48, msg: "> MESTRE DO SURF: Pegue as maiores ondas sem cair!", isMaster: "JOGO_SURF" }
 ];
 
@@ -1680,14 +2150,27 @@ function drawPlayer() {
 function drawNPC(npc) {
     drawShadow(npc.x, npc.y);
     if (npc.img.complete && npc.img.naturalWidth !== 0) {
-        const proporcao = npc.img.width / npc.img.height;
-        const larguraCalculada = npc.tamanho * proporcao;
-        const alturaCalculada = npc.tamanho;
-        const drawX = Math.floor(npc.x - larguraCalculada / 2);
-        const drawY = Math.floor(npc.y - alturaCalculada);
+        let larguraCalculada, alturaCalculada, drawX, drawY;
 
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(npc.img, drawX, drawY, larguraCalculada, alturaCalculada);
+        if (npc.sw && npc.sh) {
+            const proporcao = npc.sw / npc.sh;
+            larguraCalculada = npc.tamanho * proporcao;
+            alturaCalculada = npc.tamanho;
+            drawX = Math.floor(npc.x - larguraCalculada / 2);
+            drawY = Math.floor(npc.y - alturaCalculada);
+
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(npc.img, npc.sx, npc.sy, npc.sw, npc.sh, drawX, drawY, larguraCalculada, alturaCalculada);
+        } else {
+            const proporcao = npc.img.width / npc.img.height;
+            larguraCalculada = npc.tamanho * proporcao;
+            alturaCalculada = npc.tamanho;
+            drawX = Math.floor(npc.x - larguraCalculada / 2);
+            drawY = Math.floor(npc.y - alturaCalculada);
+
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(npc.img, drawX, drawY, larguraCalculada, alturaCalculada);
+        }
     }
 }
 
@@ -1779,6 +2262,53 @@ function drawSceneObstacles() {
                 ctx.fillStyle = '#d35400'; ctx.beginPath(); ctx.moveTo(obs.x + 10, obs.y + 10); ctx.lineTo(obs.x + 18, obs.y + 12); ctx.lineTo(obs.x + 10, obs.y + 14); ctx.closePath(); ctx.fill(); 
                 ctx.fillStyle = '#333333'; ctx.fillRect(obs.x + 5, obs.y, 10, 5); ctx.fillRect(obs.x + 2, obs.y + 5, 16, 2); 
                 break;
+            case 'campfire':
+                // Fogueira animada do acampamento base
+                ctx.fillStyle = '#424242';
+                ctx.beginPath(); ctx.arc(obs.x + 12, obs.y + 16, 11, 0, Math.PI * 2); ctx.fill();
+                // Troncos de madeira cruzados
+                ctx.fillStyle = '#3e2723';
+                ctx.fillRect(obs.x + 3, obs.y + 14, 18, 4);
+                ctx.fillRect(obs.x + 10, obs.y + 7, 4, 18);
+                // Chamas animadas
+                let flameHeight = 10 + Math.sin(Date.now() * 0.015) * 3;
+                ctx.fillStyle = '#e67e22';
+                ctx.beginPath();
+                ctx.moveTo(obs.x + 5, obs.y + 16);
+                ctx.lineTo(obs.x + 12, obs.y + 16 - flameHeight);
+                ctx.lineTo(obs.x + 19, obs.y + 16);
+                ctx.closePath(); ctx.fill();
+                // Núcleo amarelo
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.moveTo(obs.x + 8, obs.y + 16);
+                ctx.lineTo(obs.x + 12, obs.y + 18 - flameHeight);
+                ctx.lineTo(obs.x + 16, obs.y + 16);
+                ctx.closePath(); ctx.fill();
+                break;
+            case 'trail_sign':
+                // Placa de trilha da montanha
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(obs.x + 8, obs.y + 8, 4, obs.h - 8);
+                ctx.fillStyle = '#8d6e63';
+                ctx.fillRect(obs.x, obs.y, obs.w, 12);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 7px monospace';
+                ctx.fillText('▲ CUME', obs.x + 2, obs.y + 9);
+                break;
+            case 'climbing_gear':
+                // Mochila e cordas de escalada
+                ctx.fillStyle = '#1565c0';
+                ctx.fillRect(obs.x + 2, obs.y + 4, 12, 14); // Mochila
+                ctx.fillStyle = '#0d47a1';
+                ctx.fillRect(obs.x + 4, obs.y + 7, 8, 5);
+                // Corda enrolada
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(obs.x + 18, obs.y + 11, 6, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
             case 'scoreboard': 
                 ctx.fillStyle = '#2c3e50'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.strokeStyle = '#ecf0f1'; ctx.lineWidth = 2; ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
@@ -1849,8 +2379,115 @@ function drawIlhaCorrida() {
 
 function drawIlhaEscalada() {
     drawWater();
-    ctx.fillStyle = "#795548"; ctx.fillRect(15, 15, 420, 270); 
-    ctx.fillStyle = "#5d4037"; ctx.fillRect(40, 30, 370, 220); 
+    
+    // 1. Base da Ilha de Montanha com bordas rochosas
+    ctx.fillStyle = "#3e2723";
+    ctx.fillRect(15, 15, 420, 270);
+    
+    // 2. Terreno alpino e platô rochoso
+    ctx.fillStyle = "#5d4037";
+    ctx.fillRect(25, 25, 400, 250);
+    
+    // Manchas de grama alpina
+    ctx.fillStyle = "#558b2f";
+    ctx.fillRect(40, 120, 100, 130);
+    ctx.fillRect(310, 120, 100, 130);
+    ctx.fillRect(150, 170, 150, 80);
+
+    // 3. Cordilheira de Montanhas Majestosa ao Fundo (Norte)
+    // Pico distante da esquerda
+    ctx.fillStyle = "#455a64";
+    ctx.beginPath();
+    ctx.moveTo(30, 90);
+    ctx.lineTo(130, 18);
+    ctx.lineTo(230, 90);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pico distante da direita
+    ctx.beginPath();
+    ctx.moveTo(220, 90);
+    ctx.lineTo(320, 18);
+    ctx.lineTo(420, 90);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pico Central Mais Alto (Monte Zorp)
+    ctx.fillStyle = "#37474f";
+    ctx.beginPath();
+    ctx.moveTo(120, 100);
+    ctx.lineTo(225, 10);
+    ctx.lineTo(330, 100);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cumes Nevados das Montanhas
+    ctx.fillStyle = "#eceff1";
+    // Neve do Pico Central
+    ctx.beginPath();
+    ctx.moveTo(225, 10);
+    ctx.lineTo(200, 38);
+    ctx.lineTo(215, 32);
+    ctx.lineTo(225, 40);
+    ctx.lineTo(235, 30);
+    ctx.lineTo(250, 38);
+    ctx.closePath();
+    ctx.fill();
+
+    // Neve do Pico Esquerdo
+    ctx.beginPath();
+    ctx.moveTo(130, 18);
+    ctx.lineTo(110, 36);
+    ctx.lineTo(130, 32);
+    ctx.lineTo(150, 36);
+    ctx.closePath();
+    ctx.fill();
+
+    // Neve do Pico Direito
+    ctx.beginPath();
+    ctx.moveTo(320, 18);
+    ctx.lineTo(300, 36);
+    ctx.lineTo(320, 32);
+    ctx.lineTo(340, 36);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fendas e rochas da montanha
+    ctx.strokeStyle = "#263238";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(225, 40);
+    ctx.lineTo(210, 80);
+    ctx.moveTo(225, 40);
+    ctx.lineTo(240, 85);
+    ctx.stroke();
+
+    // 4. Trilha de Terra Batida até a base da montanha
+    ctx.fillStyle = "#8d6e63";
+    ctx.beginPath();
+    ctx.moveTo(200, 270);
+    ctx.lineTo(205, 75);
+    ctx.lineTo(245, 75);
+    ctx.lineTo(250, 270);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pedregulhos de trilha
+    ctx.fillStyle = "#d7ccc8";
+    for (let i = 0; i < 6; i++) {
+        ctx.fillRect(215 + (i % 2) * 12, 100 + i * 25, 4, 3);
+    }
+
+    // Portal/Entrada de Escalada no Norte
+    ctx.fillStyle = "#8d6e63";
+    ctx.fillRect(195, 55, 6, 25);
+    ctx.fillRect(249, 55, 6, 25);
+    ctx.fillRect(195, 55, 60, 6);
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 8px monospace";
+    ctx.fillText("▲ ENTRADA DO MONTE", 175, 50);
+
+    // Entrada Sul (caminho para o Arquipélago/HUB)
     drawPath(205, 270, 40, 30);
 }
 

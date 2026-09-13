@@ -82,34 +82,123 @@ const imgGeologa = new Image(); imgGeologa.src = "npc_geologa.png";
 const imgChef = new Image(); imgChef.src = "npc_chef.png";
 const imgGuarda = new Image(); imgGuarda.src = "npc_guarda.png";
 
-// Sprites Dedicados de Animação do Zorp na Escalada (Sem pedras nos pés)
-const imgZorpClimbIdle0 = new Image(); imgZorpClimbIdle0.src = "zorp_climb_idle_0.png";
-const imgZorpClimbIdle1 = new Image(); imgZorpClimbIdle1.src = "zorp_climb_idle_1.png";
-const imgZorpClimbUp0 = new Image(); imgZorpClimbUp0.src = "zorp_climb_up_0.png";
-const imgZorpClimbUp1 = new Image(); imgZorpClimbUp1.src = "zorp_climb_up_1.png";
-const imgZorpClimbUp2 = new Image(); imgZorpClimbUp2.src = "zorp_climb_up_2.png";
-const imgZorpClimbUp3 = new Image(); imgZorpClimbUp3.src = "zorp_climb_up_3.png";
-const imgZorpClimbReachL = new Image(); imgZorpClimbReachL.src = "zorp_climb_reach_left.png";
-const imgZorpClimbReachR = new Image(); imgZorpClimbReachR.src = "zorp_climb_reach_right.png";
-const imgZorpClimbJumpUp = new Image(); imgZorpClimbJumpUp.src = "zorp_climb_jump_up.png";
-const imgZorpClimbJumpL = new Image(); imgZorpClimbJumpL.src = "zorp_climb_jump_left.png";
-const imgZorpClimbJumpR = new Image(); imgZorpClimbJumpR.src = "zorp_climb_jump_right.png";
-const imgZorpClimbHit = new Image(); imgZorpClimbHit.src = "zorp_climb_hit.png";
-const imgZorpClimbFall = new Image(); imgZorpClimbFall.src = "zorp_climb_fall.png";
-const imgZorpClimbWin0 = new Image(); imgZorpClimbWin0.src = "zorp_climb_win_0.png";
-const imgZorpClimbWin1 = new Image(); imgZorpClimbWin1.src = "zorp_climb_win_1.png";
+// Sprites Dedicados de Animação do Zorp na Escalada (Sem pedras nos pés - Linhas 1 a 3)
+const imgZorpClimbIdle0 = new Image(); imgZorpClimbIdle0.src = "zorp_climb_idle_0.png?v=3";
+const imgZorpClimbIdle1 = new Image(); imgZorpClimbIdle1.src = "zorp_climb_idle_1.png?v=3";
+const imgZorpClimbUp0 = new Image(); imgZorpClimbUp0.src = "zorp_climb_up_0.png?v=3";
+const imgZorpClimbUp1 = new Image(); imgZorpClimbUp1.src = "zorp_climb_up_1.png?v=3";
+const imgZorpClimbUp2 = new Image(); imgZorpClimbUp2.src = "zorp_climb_up_2.png?v=3";
+const imgZorpClimbUp3 = new Image(); imgZorpClimbUp3.src = "zorp_climb_up_3.png?v=3";
+const imgZorpClimbReachL = new Image(); imgZorpClimbReachL.src = "zorp_climb_reach_left.png?v=3";
+const imgZorpClimbReachR = new Image(); imgZorpClimbReachR.src = "zorp_climb_reach_right.png?v=3";
+const imgZorpClimbJumpUp = new Image(); imgZorpClimbJumpUp.src = "zorp_climb_jump_up.png?v=3";
+const imgZorpClimbJumpL = new Image(); imgZorpClimbJumpL.src = "zorp_climb_jump_left.png?v=3";
+const imgZorpClimbJumpR = new Image(); imgZorpClimbJumpR.src = "zorp_climb_jump_right.png?v=3";
+const imgZorpClimbHit = new Image(); imgZorpClimbHit.src = "zorp_climb_hit.png?v=3";
+const imgZorpClimbFall = new Image(); imgZorpClimbFall.src = "zorp_climb_fall.png?v=3";
 
 // Sprites de Agarras Coloridas de Escalada (Estilo Google Doodle Champion Island)
-const imgGripGreen = new Image(); imgGripGreen.src = "grip_green.png";
-const imgGripPurple = new Image(); imgGripPurple.src = "grip_purple.png";
-const imgGripBlue = new Image(); imgGripBlue.src = "grip_blue.png";
-const imgGripRed = new Image(); imgGripRed.src = "grip_red.png";
-const imgShrineCheckpoint = new Image(); imgShrineCheckpoint.src = "shrine_checkpoint.png";
-const imgPlatformLedge = new Image(); imgPlatformLedge.src = "platform_ledge.png";
+const imgGripGreen = new Image(); imgGripGreen.src = "grip_green.png?v=3";
+const imgGripPurple = new Image(); imgGripPurple.src = "grip_purple.png?v=3";
+const imgGripBlue = new Image(); imgGripBlue.src = "grip_blue.png?v=3";
+const imgGripRed = new Image(); imgGripRed.src = "grip_red.png?v=3";
+const imgShrineCheckpoint = new Image(); imgShrineCheckpoint.src = "shrine_checkpoint.png?v=3";
+const imgPlatformLedge = new Image(); imgPlatformLedge.src = "platform_ledge.png?v=3";
 
 // Efeitos e Projéteis do Mestre
-const imgHazardStone = new Image(); imgHazardStone.src = "hazard_stone.png";
-const imgHitSparkYellow = new Image(); imgHitSparkYellow.src = "hit_spark_yellow.png";
+const imgHazardStone = new Image(); imgHazardStone.src = "hazard_stone.png?v=3";
+const imgHitSparkYellow = new Image(); imgHitSparkYellow.src = "hit_spark_yellow.png?v=3";
+
+// Arte e Sprites de Vitória no Cume (VictoryEscalada.png)
+const imgVictoryEscalada = new Image(); imgVictoryEscalada.src = "VictoryEscalada.png?v=3";
+const imgVictoryZorpBadge = new Image(); imgVictoryZorpBadge.src = "victory_zorp_badge.png?v=3";
+const imgVictoryMestreThumbs = new Image(); imgVictoryMestreThumbs.src = "victory_mestre_thumbs.png?v=3";
+
+// -------------------------------------------------------------
+// SPRITES E RECURSOS DO MINIGAME DE BOXE (NOVA ARENA, ZORP COSTAS, MESTRE FRENTE, EMOJIS, FX E FINISHER)
+// -------------------------------------------------------------
+const imgBoxeArenaBg = new Image(); imgBoxeArenaBg.src = "Arena_Boxe.png?v=4";
+const imgBoxeTelaVs = new Image(); imgBoxeTelaVs.src = "boxe_tela_vs.png?v=4";
+const imgBoxeTelaVitoria = new Image(); imgBoxeTelaVitoria.src = "boxe_tela_vitoria.png?v=4";
+
+// Zorp (Costas / Punch-Out Perspective)
+const imgZorpBoxeBackIdle0 = new Image(); imgZorpBoxeBackIdle0.src = "zorp_boxe_back_idle_0.png?v=5";
+const imgZorpBoxeBackIdle1 = new Image(); imgZorpBoxeBackIdle1.src = "zorp_boxe_back_idle_1.png?v=5";
+const imgZorpBoxeBackIdle2 = new Image(); imgZorpBoxeBackIdle2.src = "zorp_boxe_back_idle_2.png?v=5";
+const imgZorpBoxeBackGuard = new Image(); imgZorpBoxeBackGuard.src = "zorp_boxe_back_guard.png?v=5";
+const imgZorpBoxeBackDuck = new Image(); imgZorpBoxeBackDuck.src = "zorp_boxe_back_duck.png?v=5";
+const imgZorpBoxeBackDodgeL = new Image(); imgZorpBoxeBackDodgeL.src = "zorp_boxe_back_dodge_l.png?v=5";
+const imgZorpBoxeBackDodgeR = new Image(); imgZorpBoxeBackDodgeR.src = "zorp_boxe_back_dodge_r.png?v=5";
+const imgZorpBoxeBackJab = new Image(); imgZorpBoxeBackJab.src = "zorp_boxe_back_jab.png?v=5";
+const imgZorpBoxeBackDireto = new Image(); imgZorpBoxeBackDireto.src = "zorp_boxe_back_direto.png?v=5";
+const imgZorpBoxeBackHook = new Image(); imgZorpBoxeBackHook.src = "zorp_boxe_back_hook.png?v=5";
+const imgZorpBoxeBackUppercut = new Image(); imgZorpBoxeBackUppercut.src = "zorp_boxe_back_uppercut.png?v=5";
+const imgZorpBoxeBackHit = new Image(); imgZorpBoxeBackHit.src = "zorp_boxe_back_hit.png?v=5";
+const imgZorpBoxeBackFall = new Image(); imgZorpBoxeBackFall.src = "zorp_boxe_back_fall.png?v=5";
+const imgZorpBoxeBackDizzyKnees = new Image(); imgZorpBoxeBackDizzyKnees.src = "zorp_boxe_back_dizzy_knees.png?v=5";
+const imgZorpBoxeBackKnockdown = new Image(); imgZorpBoxeBackKnockdown.src = "zorp_boxe_back_knockdown.png?v=5";
+const imgZorpBoxeBackSitup = new Image(); imgZorpBoxeBackSitup.src = "zorp_boxe_back_situp.png?v=5";
+const imgZorpBoxeBackPant = new Image(); imgZorpBoxeBackPant.src = "zorp_boxe_back_pant.png?v=5";
+const imgZorpBoxeBackWin = new Image(); imgZorpBoxeBackWin.src = "zorp_boxe_back_win.png?v=5";
+
+// Mestre (Frente / Punch-Out Opponent)
+const imgMestreBoxeFrontIdle0 = new Image(); imgMestreBoxeFrontIdle0.src = "mestre_boxe_front_idle_0.png?v=5";
+const imgMestreBoxeFrontIdle1 = new Image(); imgMestreBoxeFrontIdle1.src = "mestre_boxe_front_idle_1.png?v=5";
+const imgMestreBoxeFrontIdle2 = new Image(); imgMestreBoxeFrontIdle2.src = "mestre_boxe_front_idle_2.png?v=5";
+const imgMestreBoxeFrontGuard = new Image(); imgMestreBoxeFrontGuard.src = "mestre_boxe_front_guard.png?v=5";
+const imgMestreBoxeFrontJab = new Image(); imgMestreBoxeFrontJab.src = "mestre_boxe_front_jab.png?v=5";
+const imgMestreBoxeFrontHeavy = new Image(); imgMestreBoxeFrontHeavy.src = "mestre_boxe_front_heavy.png?v=5";
+const imgMestreBoxeFrontHit = new Image(); imgMestreBoxeFrontHit.src = "mestre_boxe_front_hit.png?v=5";
+const imgMestreBoxeFrontKnockdown = new Image(); imgMestreBoxeFrontKnockdown.src = "mestre_boxe_front_knockdown.png?v=5";
+const imgMestreBoxeFrontMat = new Image(); imgMestreBoxeFrontMat.src = "mestre_boxe_front_mat.png?v=5";
+const imgMestreBoxeFrontGetup = new Image(); imgMestreBoxeFrontGetup.src = "mestre_boxe_front_getup.png?v=5";
+const imgMestreBoxeFrontRise = new Image(); imgMestreBoxeFrontRise.src = "mestre_boxe_front_rise.png?v=5";
+const imgMestreBoxeFrontWin = new Image(); imgMestreBoxeFrontWin.src = "mestre_boxe_front_win.png?v=5";
+
+// Mestre Golpe Especial Punch-Out & Speedlines
+const imgMestreBoxeSpecialWindup = new Image(); imgMestreBoxeSpecialWindup.src = "mestre_boxe_special_windup.png?v=5";
+const imgMestreBoxeSpecialCharge = new Image(); imgMestreBoxeSpecialCharge.src = "mestre_boxe_special_charge.png?v=5";
+const imgMestreBoxeSpecialPunch = new Image(); imgMestreBoxeSpecialPunch.src = "mestre_boxe_special_punch.png?v=5";
+const imgBoxeFxSpeedline = new Image(); imgBoxeFxSpeedline.src = "boxe_fx_speedline.png?v=5";
+
+// Emojis de Reação
+const imgEmojiZorpAlert = new Image(); imgEmojiZorpAlert.src = "emoji_zorp_alert.png?v=4";
+const imgEmojiZorpAngry = new Image(); imgEmojiZorpAngry.src = "emoji_zorp_angry.png?v=4";
+const imgEmojiZorpStars = new Image(); imgEmojiZorpStars.src = "emoji_zorp_stars.png?v=4";
+const imgEmojiZorpGuard = new Image(); imgEmojiZorpGuard.src = "emoji_zorp_guard.png?v=4";
+const imgEmojiZorpDizzy = new Image(); imgEmojiZorpDizzy.src = "emoji_zorp_dizzy.png?v=4";
+const imgEmojiZorpSwirl = new Image(); imgEmojiZorpSwirl.src = "emoji_zorp_swirl.png?v=4";
+
+const imgEmojiMestreSmirk = new Image(); imgEmojiMestreSmirk.src = "emoji_mestre_smirk.png?v=4";
+const imgEmojiMestreCocky = new Image(); imgEmojiMestreCocky.src = "emoji_mestre_cocky.png?v=4";
+const imgEmojiMestreDizzy = new Image(); imgEmojiMestreDizzy.src = "emoji_mestre_dizzy.png?v=4";
+const imgEmojiMestreWink = new Image(); imgEmojiMestreWink.src = "emoji_mestre_wink.png?v=4";
+const imgEmojiMestreShock = new Image(); imgEmojiMestreShock.src = "emoji_mestre_shock.png?v=4";
+
+// Efeitos Visuais de Impacto
+const imgBoxeFxHitspark = new Image(); imgBoxeFxHitspark.src = "boxe_fx_hitspark.png?v=4";
+const imgBoxeFxExplosion = new Image(); imgBoxeFxExplosion.src = "boxe_fx_explosion.png?v=4";
+const imgBoxeFxStars = new Image(); imgBoxeFxStars.src = "boxe_fx_stars.png?v=4";
+const imgBoxeFxExclamation = new Image(); imgBoxeFxExclamation.src = "boxe_fx_exclamation.png?v=4";
+
+// Golpe Final Especial Cinematográfico (Super Gancho & Mestre Voando - EXCLUSIVOS)
+const imgZorpFinisherPrep = new Image(); imgZorpFinisherPrep.src = "zorp_finisher_prep.png?v=4";
+const imgZorpFinisherLaunch = new Image(); imgZorpFinisherLaunch.src = "zorp_finisher_launch.png?v=4";
+const imgZorpFinisherLaunchArc = new Image(); imgZorpFinisherLaunchArc.src = "zorp_finisher_launch_arc.png?v=4";
+const imgZorpFinisherImpact = new Image(); imgZorpFinisherImpact.src = "zorp_finisher_impact.png?v=4";
+const imgZorpFinisherPose = new Image(); imgZorpFinisherPose.src = "zorp_finisher_pose.png?v=4";
+
+const imgMestreFinisherFly0 = new Image(); imgMestreFinisherFly0.src = "mestre_finisher_fly_0.png?v=4";
+const imgMestreFinisherFly1 = new Image(); imgMestreFinisherFly1.src = "mestre_finisher_fly_1.png?v=4";
+const imgMestreFinisherFlyDescend = new Image(); imgMestreFinisherFlyDescend.src = "mestre_finisher_fly_descend.png?v=4";
+const imgMestreFinisherCrash = new Image(); imgMestreFinisherCrash.src = "mestre_finisher_crash.png?v=4";
+
+// Novos NPCs da Ilha de Boxe (Overworld)
+const imgNpcMestreBoxe = new Image(); imgNpcMestreBoxe.src = "npc_mestre_novo.png?v=4";
+const imgNpcTreinadorBoxe = new Image(); imgNpcTreinadorBoxe.src = "npc_treinador_novo.png?v=4";
+const imgNpcArbitroBoxe = new Image(); imgNpcArbitroBoxe.src = "npc_arbitro_novo.png?v=4";
+const imgNpcBoxeador = new Image(); imgNpcBoxeador.src = "npc_pugilista_novo.png?v=4";
+const imgBoxeSacoPancada = new Image(); imgBoxeSacoPancada.src = "boxe_saco_pancada.png?v=4";
 
 // -------------------------------------------------------------
 // 2. OBJETOS, OBSTÁCULOS E ESTADOS DO JOGO
@@ -122,7 +211,11 @@ const player = {
     renderHeight: 48   
 };
 
-const keys = { w: false, a: false, s: false, d: false, e: false, space: false };
+const keys = { 
+    w: false, a: false, s: false, d: false, e: false, space: false,
+    j: false, k: false, u: false, i: false,
+    z: false, x: false, c: false, v: false
+};
 
 const zorpSprite = {
     cols: 3, rows: 4, row: 0, 
@@ -183,11 +276,11 @@ const escaladaGame = {
     invulTimer: 0,
     shakeTimer: 0,
     
-    // Mundo Amplo da Montanha (Largura total 850px com Câmera Móvel)
-    mountainWidth: 850,
-    cameraX: 200,
+    // Mundo Amplo da Montanha (1500px de largura com Exploração Lateral Completa)
+    mountainWidth: 1500,
+    cameraX: 525,
     
-    playerX: 425,
+    playerX: 750,
     playerY: 220,
     pedraAtual: null,
     targetPedra: null,
@@ -222,9 +315,9 @@ const escaladaGame = {
     morteMotivo: "",
     isGameOver: false,
     
-    minimapaX: 16,
+    minimapaX: 14,
     minimapaY: 46,
-    minimapaLargura: 28,
+    minimapaLargura: 44,
     minimapaAltura: 195,
     
     mensagemAtual: "",
@@ -239,9 +332,9 @@ function resetEscalada() {
     escaladaGame.vida = 3;
     escaladaGame.invulTimer = 0;
     escaladaGame.shakeTimer = 0;
-    escaladaGame.mountainWidth = 850;
-    escaladaGame.cameraX = 200;
-    escaladaGame.playerX = 425;
+    escaladaGame.mountainWidth = 1500;
+    escaladaGame.cameraX = 525;
+    escaladaGame.playerX = 750;
     escaladaGame.playerY = 220;
     escaladaGame.alturaAtual = 0;
     escaladaGame.checkpointAltura = 0;
@@ -256,34 +349,40 @@ function resetEscalada() {
     escaladaGame.particulas = [];
     escaladaGame.sparksImpacto = [];
     escaladaGame.ventoForca = 0;
-    escaladaGame.ventoTimer = 220;
+    escaladaGame.ventoTimer = 180;
     escaladaGame.ventoDuracao = 0;
     escaladaGame.ventoParticulas = [];
     escaladaGame.mensagemAtual = "";
     escaladaGame.mensagemTimer = 0;
     escaladaGame.mensagensMostradas = {200: false, 500: false, 800: false, 1100: false};
     
-    // Base inicial ampla com agarras coloridas distribuídas por toda a largura da montanha (850px)
+    // Base inicial ampla com agarras coloridas distribuídas por toda a montanha de 1500px
     escaladaGame.pedrasGeradas = [
-        { x: 90, y: 220, r: 16, tipo: 'green', id: 1 },
-        { x: 230, y: 220, r: 16, tipo: 'purple', id: 2 },
-        { x: 425, y: 220, r: 16, tipo: 'green', id: 3 }, // Ponto de partida central
-        { x: 620, y: 220, r: 16, tipo: 'purple', id: 4 },
-        { x: 760, y: 220, r: 16, tipo: 'green', id: 5 },
+        { x: 120, y: 220, r: 16, tipo: 'green', id: 1 },
+        { x: 320, y: 220, r: 16, tipo: 'purple', id: 2 },
+        { x: 530, y: 220, r: 16, tipo: 'green', id: 3 },
+        { x: 750, y: 220, r: 16, tipo: 'green', id: 4 }, // Ponto de partida inicial central
+        { x: 970, y: 220, r: 16, tipo: 'purple', id: 5 },
+        { x: 1180, y: 220, r: 16, tipo: 'green', id: 6 },
+        { x: 1380, y: 220, r: 16, tipo: 'purple', id: 7 },
         
-        { x: 150, y: 155, r: 16, tipo: 'purple', id: 6 },
-        { x: 300, y: 150, r: 16, tipo: 'green', id: 7 },
-        { x: 425, y: 150, r: 16, tipo: 'moving', baseX: 425, amplitude: 50, speed: 1.1, offset: 0, id: 8 },
-        { x: 550, y: 155, r: 16, tipo: 'purple', id: 9 },
-        { x: 700, y: 150, r: 16, tipo: 'green', id: 10 },
+        { x: 200, y: 155, r: 16, tipo: 'purple', id: 8 },
+        { x: 420, y: 150, r: 16, tipo: 'green', id: 9 },
+        { x: 620, y: 150, r: 16, tipo: 'moving', baseX: 620, amplitude: 55, speed: 1.2, offset: 0, id: 10 },
+        { x: 750, y: 150, r: 16, tipo: 'green', id: 11 },
+        { x: 880, y: 150, r: 16, tipo: 'moving', baseX: 880, amplitude: 55, speed: 1.2, offset: Math.PI, id: 12 },
+        { x: 1080, y: 155, r: 16, tipo: 'purple', id: 13 },
+        { x: 1300, y: 150, r: 16, tipo: 'green', id: 14 },
         
-        { x: 80, y: 85, r: 16, tipo: 'green', id: 11 },
-        { x: 240, y: 90, r: 16, tipo: 'purple', id: 12 },
-        { x: 425, y: 85, r: 16, tipo: 'green', id: 13 },
-        { x: 610, y: 85, r: 16, tipo: 'green', id: 14 },
-        { x: 770, y: 90, r: 16, tipo: 'purple', id: 15 }
+        { x: 140, y: 85, r: 16, tipo: 'green', id: 15 },
+        { x: 350, y: 90, r: 16, tipo: 'purple', id: 16 },
+        { x: 560, y: 85, r: 16, tipo: 'green', id: 17 },
+        { x: 750, y: 85, r: 16, tipo: 'green', id: 18 },
+        { x: 940, y: 85, r: 16, tipo: 'purple', id: 19 },
+        { x: 1150, y: 90, r: 16, tipo: 'green', id: 20 },
+        { x: 1360, y: 85, r: 16, tipo: 'green', id: 21 }
     ];
-    escaladaGame.pedraAtual = escaladaGame.pedrasGeradas[2]; // Zorp no centro
+    escaladaGame.pedraAtual = escaladaGame.pedrasGeradas[3]; // Zorp no centro
     escaladaGame.targetPedra = null;
     escaladaGame.gameState = 'TUTORIAL';
 }
@@ -300,16 +399,16 @@ function encontrarMelhorPedra(dirX) {
         let dx = p.x - escaladaGame.playerX;
         let dy = p.y - escaladaGame.playerY;
 
-        // Permite saltos para cima ou transversais laterais através da montanha ampla
+        // Permite saltos para cima ou transversais laterais na montanha de 1500px
         if (dy < 15 && dy > -190) {
             let valido = false;
             if (dirX < 0 && dx < -10) valido = true;
             else if (dirX > 0 && dx > 10) valido = true;
-            else if (dirX === 0 && Math.abs(dx) <= 140 && dy < -20) valido = true;
+            else if (dirX === 0 && Math.abs(dx) <= 150 && dy < -20) valido = true;
 
             if (valido) {
                 let dist = Math.hypot(dx, dy);
-                if (dist < menorScore && dist <= 260) {
+                if (dist < menorScore && dist <= 270) {
                     menorScore = dist;
                     melhor = p;
                 }
@@ -404,7 +503,7 @@ function atualizarAnimacaoPulo() {
                 escaladaGame.pedraAtual.quebrando = true;
             }
             
-            // Checkpoint / Santuário recupera vida cheia
+            // Checkpoint / Santuário recupera vida
             if (escaladaGame.pedraAtual.tipo === 'checkpoint' && !escaladaGame.pedraAtual.coletado) {
                 escaladaGame.pedraAtual.coletado = true;
                 escaladaGame.vida = escaladaGame.maxVida;
@@ -416,7 +515,7 @@ function atualizarAnimacaoPulo() {
         const t = escaladaGame.puloProgresso;
         let ventoDesvio = 0;
         if (escaladaGame.ventoDuracao > 0) {
-            ventoDesvio = Math.sin(t * Math.PI) * (escaladaGame.ventoForca * 14);
+            ventoDesvio = Math.sin(t * Math.PI) * (escaladaGame.ventoForca * 16);
         }
         
         escaladaGame.playerX = escaladaGame.startX + (escaladaGame.targetX - escaladaGame.startX) * t + ventoDesvio;
@@ -446,13 +545,13 @@ function atualizarCameraEMundo() {
         }
     }
 
-    // Acompanhamento suave horizontal da câmera pela montanha ampla (850px)
+    // Acompanhamento horizontal suave pela montanha ampla de 1500px
     const maxCamX = escaladaGame.mountainWidth - canvas.width;
     const targetCamX = Math.max(0, Math.min(maxCamX, escaladaGame.playerX - canvas.width / 2));
     escaladaGame.cameraX += (targetCamX - escaladaGame.cameraX) * 0.14;
 }
 
-let pedraIdCounter = 30;
+let pedraIdCounter = 40;
 function gerarNovaCamadaDePedras() {
     let menorY = escaladaGame.pedrasGeradas.length > 0 
         ? Math.min(...escaladaGame.pedrasGeradas.map(p => p.y)) 
@@ -460,45 +559,45 @@ function gerarNovaCamadaDePedras() {
         
     const progresso = escaladaGame.alturaAtual / escaladaGame.alturaTotal;
     
-    // Tipos de agarras coloridas
+    // Tipos de agarras coloridas com maior desafio
     const tipos = ['green', 'purple', 'green'];
-    if (progresso > 0.12) tipos.push('moving');
-    if (progresso > 0.25) tipos.push('brittle');
-    if (progresso > 0.45) tipos.push('moving', 'brittle');
+    if (progresso > 0.10) tipos.push('moving');
+    if (progresso > 0.20) tipos.push('brittle');
+    if (progresso > 0.40) tipos.push('moving', 'brittle', 'brittle');
 
-    // A cada ~300m gera um santuário de descanso com plataforma de grama
+    // A cada ~300m gera santuários de descanso
     const proxCheckpoint = Math.floor((escaladaGame.alturaAtual + 120) / 300) * 300;
     const isCheckpoint = (proxCheckpoint > 0 && Math.abs(escaladaGame.alturaAtual - proxCheckpoint) < 60);
 
-    // 5 Rotas de escalada pela montanha ampla de 850px
+    // 8 Setores/Colunas ao longo da montanha de 1500px
     const setores = [
-        { min: 65, max: 180 },
-        { min: 210, max: 330 },
-        { min: 360, max: 490 },
-        { min: 520, max: 640 },
-        { min: 670, max: 785 }
+        { min: 70, max: 200 },
+        { min: 230, max: 370 },
+        { min: 400, max: 540 },
+        { min: 580, max: 720 },
+        { min: 760, max: 900 },
+        { min: 940, max: 1080 },
+        { min: 1120, max: 1260 },
+        { min: 1300, max: 1430 }
     ];
 
     if (isCheckpoint) {
-        // Gera a plataforma de descanso com o santuário no centro da montanha
-        let novaPedra = {
+        // Gera plataformas de descanso
+        escaladaGame.pedrasGeradas.push({
             id: ++pedraIdCounter,
-            x: 425,
+            x: 750,
             y: menorY - 55,
             r: 22,
             tipo: 'checkpoint',
             coletado: false
-        };
-        escaladaGame.pedrasGeradas.push(novaPedra);
-        
-        // Agarras laterais de apoio
-        escaladaGame.pedrasGeradas.push({ id: ++pedraIdCounter, x: 180, y: menorY - 50, r: 16, tipo: 'green' });
-        escaladaGame.pedrasGeradas.push({ id: ++pedraIdCounter, x: 670, y: menorY - 50, r: 16, tipo: 'purple' });
+        });
+        escaladaGame.pedrasGeradas.push({ id: ++pedraIdCounter, x: 280, y: menorY - 50, r: 16, tipo: 'green' });
+        escaladaGame.pedrasGeradas.push({ id: ++pedraIdCounter, x: 1220, y: menorY - 50, r: 16, tipo: 'purple' });
         return;
     }
 
-    // Gera 4 a 5 agarras por camada para rica variedade de caminhos
-    let qtdPedras = Math.random() < 0.5 ? 4 : 5;
+    // Gera 5 a 7 agarras por camada para ampla liberdade lateral
+    let qtdPedras = Math.random() < 0.5 ? 6 : 7;
     let setoresEscolhidos = setores.slice().sort(() => Math.random() - 0.5).slice(0, qtdPedras);
 
     for (let s of setoresEscolhidos) {
@@ -516,11 +615,11 @@ function gerarNovaCamadaDePedras() {
 
         if (tipo === 'moving') {
             novaPedra.baseX = posX;
-            novaPedra.amplitude = 35 + Math.random() * 35;
-            novaPedra.speed = 1.0 + Math.random() * 1.2;
+            novaPedra.amplitude = 40 + Math.random() * 40;
+            novaPedra.speed = 1.1 + Math.random() * 1.3;
             novaPedra.offset = Math.random() * Math.PI * 2;
         } else if (tipo === 'brittle') {
-            novaPedra.tempoRestante = 48; // ~0.8s
+            novaPedra.tempoRestante = 40; // ~0.65s (mais desafiador!)
             novaPedra.quebrando = false;
             novaPedra.quebrada = false;
         }
@@ -541,7 +640,7 @@ function gerenciarPedras() {
             }
         } else if (p.tipo === 'brittle' && p.quebrando && !p.quebrada) {
             p.tempoRestante--;
-            if (Math.random() < 0.35) {
+            if (Math.random() < 0.4) {
                 criarPoeira(p.x, p.y, '#e74c3c', 2);
             }
             if (p.tempoRestante <= 0) {
@@ -593,13 +692,13 @@ function gerenciarVento() {
     if (escaladaGame.ventoDuracao > 0) {
         escaladaGame.ventoDuracao--;
         
-        if (Math.random() < 0.75) {
+        if (Math.random() < 0.8) {
             escaladaGame.ventoParticulas.push({
                 x: escaladaGame.ventoDirecao > 0 ? -20 : escaladaGame.mountainWidth + 20,
                 y: Math.random() * canvas.height,
-                vx: escaladaGame.ventoDirecao * (7 + Math.random() * 4),
+                vx: escaladaGame.ventoDirecao * (8 + Math.random() * 5),
                 vy: (Math.random() - 0.5) * 1.5,
-                len: 22 + Math.random() * 28,
+                len: 24 + Math.random() * 30,
                 alpha: 0.85
             });
         }
@@ -608,9 +707,9 @@ function gerenciarVento() {
         escaladaGame.ventoTimer--;
         if (escaladaGame.ventoTimer <= 0) {
             escaladaGame.ventoDuracao = 180 + Math.floor(Math.random() * 120);
-            escaladaGame.ventoTimer = 340 + Math.floor(Math.random() * 220);
+            escaladaGame.ventoTimer = 280 + Math.floor(Math.random() * 200);
             escaladaGame.ventoDirecao = Math.random() < 0.5 ? 1 : -1;
-            escaladaGame.ventoForca = 1.0 + Math.random() * 0.8;
+            escaladaGame.ventoForca = 1.1 + Math.random() * 0.9;
         }
     }
 
@@ -628,8 +727,8 @@ function gerenciarVento() {
 function gerenciarObjetosCaindo() {
     const progresso = escaladaGame.alturaAtual / escaladaGame.alturaTotal;
     
-    // Projéteis jogados pelo mestre: pedras arremessadas, pedregulhos pesados e bolas de neve
-    const chance = 0.020 + progresso * 0.038;
+    // Projéteis jogados pelo mestre com maior frequência e perigo (pedras arremessadas, pedregulhos pesados e bolas de neve)
+    const chance = 0.024 + progresso * 0.045;
     if (Math.random() < chance) {
         const rnd = Math.random();
         let tipo = 'thrown_stone';
@@ -639,7 +738,7 @@ function gerenciarObjetosCaindo() {
         escaladaGame.objetosCaindo.push({
             x: 50 + Math.random() * (escaladaGame.mountainWidth - 100),
             y: escaladaGame.playerY - canvas.height - 30,
-            speed: 2.4 + Math.random() * 2.4 + progresso * 1.5,
+            speed: 2.6 + Math.random() * 2.8 + progresso * 1.6,
             r: (tipo === 'snowball') ? 14 : (tipo === 'boulder' ? 12 : 10),
             type: tipo,
             rotacao: 0
@@ -653,7 +752,6 @@ function gerenciarObjetosCaindo() {
         obj.y += obj.speed;
         obj.rotacao += 0.12;
 
-        // Colisão com Zorp
         let dx = obj.x - escaladaGame.playerX;
         let dy = obj.y - (escaladaGame.playerY - 14);
         let dist = Math.hypot(dx, dy);
@@ -701,7 +799,7 @@ function finalizarMinigame(resultado) {
     escaladaGame.win = (resultado === "VITORIA");
     if (resultado === "VITORIA") {
         insignias.escalada = true;
-        dialogText.innerHTML = "> MESTRE DA ESCALADA: Incrível! Você dominou o Monte Zorp e conquistou a Insígnia da Escalada!";
+        dialogText.innerHTML = "> MESTRE DA ESCALADA: Espetacular! Você dominou o Monte Zorp e conquistou a Insígnia da Escalada!";
     } else {
         dialogText.innerHTML = "> MESTRE DA ESCALADA: A montanha exige atenção! Use as rotas laterais e desvie das pedras que arremesso!";
     }
@@ -793,7 +891,7 @@ function drawEscaladaGame() {
     ctx.save();
     ctx.translate(shakeX, shakeY);
 
-    // 1. Fundo da Parede Montanhosa Ampla (850px) com Câmera Móvel
+    // 1. Fundo da Parede Montanhosa Ampla (1500px) com Câmera Móvel
     const progresso = Math.min(1, escaladaGame.alturaAtual / escaladaGame.alturaTotal);
     let gradiente = ctx.createLinearGradient(0, 0, 0, canvas.height);
     if (progresso < 0.35) {
@@ -809,11 +907,11 @@ function drawEscaladaGame() {
     ctx.fillStyle = gradiente;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Fendas rochosas e estratos montanhosos na coordenada de mundo
+    // Fendas rochosas e estratos montanhosos na coordenada de mundo (1500px)
     ctx.strokeStyle = "rgba(0, 0, 0, 0.22)";
     ctx.lineWidth = 3;
-    for (let i = 0; i < 14; i++) {
-        let fendaMundoX = 30 + (i * 60);
+    for (let i = 0; i < 26; i++) {
+        let fendaMundoX = 30 + (i * 58);
         let renderFendaX = fendaMundoX - cameraX;
         let fendaY = ((i * 55 - (escaladaGame.alturaAtual * 0.4)) % (canvas.height + 80));
         
@@ -856,7 +954,7 @@ function drawEscaladaGame() {
         const renderX = p.x - cameraX;
         const renderY = p.y - cameraY;
 
-        if (renderX > -50 && renderX < canvas.width + 50 && renderY > -50 && renderY < canvas.height + 50) {
+        if (renderX > -60 && renderX < canvas.width + 60 && renderY > -60 && renderY < canvas.height + 60) {
             let shakePedraX = 0;
             if (p.tipo === 'brittle' && p.quebrando) {
                 shakePedraX = (Math.random() - 0.5) * 4;
@@ -922,7 +1020,7 @@ function drawEscaladaGame() {
         }
     });
 
-    // 4. Desenhar Jogador (Zorp - Sprites Limpos sem pedras nos pés)
+    // 4. Desenhar Jogador (Zorp - Sprites Puros de Escalada de Costas, Sem Pedra de Gelo)
     const playerRenderX = escaladaGame.playerX - cameraX;
     const playerRenderY = escaladaGame.playerY - cameraY;
     const isBlinking = (escaladaGame.invulTimer > 0 && Math.floor(Date.now() / 80) % 2 === 0);
@@ -931,10 +1029,7 @@ function drawEscaladaGame() {
         let currentZorpSprite = null;
         let zW = 38, zH = 58;
 
-        if (escaladaGame.alturaAtual >= escaladaGame.alturaTotal || escaladaGame.win) {
-            currentZorpSprite = (Date.now() % 400 < 200) ? imgZorpClimbWin0 : imgZorpClimbWin1;
-            zW = 44; zH = 64;
-        } else if (escaladaGame.invulTimer > 30) {
+        if (escaladaGame.invulTimer > 30) {
             currentZorpSprite = imgZorpClimbHit;
             zW = 38; zH = 56;
         } else if (escaladaGame.emPulo) {
@@ -955,8 +1050,9 @@ function drawEscaladaGame() {
             currentZorpSprite = imgZorpClimbReachR;
             zW = 40; zH = 58;
         } else {
-            const upFrames = [imgZorpClimbUp0, imgZorpClimbUp1, imgZorpClimbUp2, imgZorpClimbUp3];
-            currentZorpSprite = upFrames[escaladaGame.climbFrameIndex % upFrames.length];
+            // Segurando firmemente na agarra da montanha (alterna ciclo natural de escalada)
+            const climbFrames = [imgZorpClimbIdle0, imgZorpClimbUp0, imgZorpClimbIdle1, imgZorpClimbUp1];
+            currentZorpSprite = climbFrames[escaladaGame.climbFrameIndex % climbFrames.length];
             zW = 36; zH = 58;
         }
 
@@ -1034,13 +1130,13 @@ function drawEscaladaGame() {
     const topoDist = (escaladaGame.alturaTotal - escaladaGame.alturaAtual);
     const topoRenderY = escaladaGame.playerY - topoDist - cameraY;
     if (topoRenderY > -150 && topoRenderY < canvas.height) {
-        // Platô do Cume amplo (850px)
+        // Platô do Cume amplo (1500px)
         const platoRenderX = 40 - cameraX;
         ctx.fillStyle = "#eceff1";
         ctx.fillRect(platoRenderX, topoRenderY + 30, escaladaGame.mountainWidth - 80, 26);
         
         // Mastro da Bandeira no centro
-        const flagRenderX = 425 - cameraX;
+        const flagRenderX = 750 - cameraX;
         ctx.fillStyle = "#f1c40f";
         ctx.fillRect(flagRenderX, topoRenderY - 14, 5, 45);
         ctx.fillStyle = "#e74c3c";
@@ -1092,12 +1188,12 @@ function drawEscaladaGame() {
     for (let v = 0; v < escaladaGame.maxVida; v++) {
         coracoes += (v < escaladaGame.vida) ? "♥ " : "♡ ";
     }
-    ctx.fillText(`VIDAS: ${coracoes}`, 60, 21);
+    ctx.fillText(`VIDAS: ${coracoes}`, 65, 21);
 
     // Altura Atual
     ctx.fillStyle = "#f1c40f";
     ctx.font = "bold 13px monospace";
-    ctx.fillText(`ALTITUDE: ${Math.floor(escaladaGame.alturaAtual)}m / ${escaladaGame.alturaTotal}m`, 220, 21);
+    ctx.fillText(`ALTITUDE: ${Math.floor(escaladaGame.alturaAtual)}m / ${escaladaGame.alturaTotal}m`, 230, 21);
 
     // Indicador de Vento
     if (escaladaGame.ventoDuracao > 0) {
@@ -1107,7 +1203,7 @@ function drawEscaladaGame() {
         ctx.fillText(`VENTO ${setaVento}`, canvas.width - 85, 21);
     }
 
-    // 10. Caixa de Diálogo do Mestre
+    // 10. Caixa de Diálogo do Mestre durante a subida
     if (escaladaGame.mensagemTimer > 0) {
         ctx.fillStyle = "rgba(20, 20, 30, 0.9)";
         ctx.fillRect(35, 42, canvas.width - 70, 44);
@@ -1128,17 +1224,43 @@ function drawEscaladaGame() {
     if (escaladaGame.gameState === 'TUTORIAL') {
         drawOverlayScreen("ESCALADA NO MONTE ZORP", [
             "Chegue ao cume do monte (1200m)!",
-            "Use [A / D] para mirar e explorar as rotas da montanha ampla.",
+            "Use [A / D] para mirar e navegar pela montanha gigante (1500px).",
             "Aperte [ESPAÇO] ou [W] para saltar de agarra em agarra.",
             "CUIDADO: Agarras azuis se movem, agarras vermelhas quebram!",
             "Desvie das pedras e bolas de neve que o Mestre joga do topo!"
         ], "#f1c40f");
     } else if (escaladaGame.gameState === 'GAMEOVER') {
         if (escaladaGame.win) {
-            drawOverlayScreen("VITÓRIA NO CUME!", [
-                "Você superou os ventos e os arremessos do Mestre!",
-                "Alcançou o topo e conquistou a Insígnia da Escalada!"
-            ], "#2ecc71");
+            // TELA DE VITÓRIA COM VictoryEscalada.png, ZORP COM A MEDALHA E MESTRE COM POLEGAR
+            if (imgVictoryEscalada.complete && imgVictoryEscalada.naturalWidth > 0) {
+                // Desenha a arte completa de fundo
+                ctx.drawImage(imgVictoryEscalada, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = "rgba(10, 20, 35, 0.92)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // Caixa central da mensagem de vitória limpa e elegante
+            ctx.fillStyle = "rgba(15, 25, 40, 0.90)";
+            ctx.fillRect(40, 195, canvas.width - 80, 85);
+            ctx.strokeStyle = "#f1c40f";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 195, canvas.width - 80, 85);
+
+            // Textos de Vitória
+            ctx.fillStyle = "#f1c40f";
+            ctx.font = "bold 15px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("★ VOCÊ VENCEU A ESCALADA! ★", canvas.width / 2, 218);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px monospace";
+            ctx.fillText("Insígnia da Escalada Conquistada no Cume!", canvas.width / 2, 240);
+
+            ctx.fillStyle = (Date.now() % 600 < 300) ? "#2ecc71" : "#ffffff";
+            ctx.font = "bold 12px monospace";
+            ctx.fillText("[ESPAÇO] CONTINUAR", canvas.width / 2, 265);
+            ctx.textAlign = "left";
         } else {
             drawOverlayScreen("QUEDA NA MONTANHA...", [
                 "A montanha é implacável!",
@@ -1147,6 +1269,1214 @@ function drawEscaladaGame() {
         }
     }
 }
+
+// -------------------------------------------------------------
+// MINIGAME DE BOXE (ESTILO PUNCH-OUT / PRIZEFIGHTERS)
+// -------------------------------------------------------------
+const boxeGame = {
+    state: 'VS_SCREEN', // 'VS_SCREEN', 'FIGHTING', 'KNOCKDOWN', 'FINISHER', 'GAMEOVER'
+    round: 1,
+    maxRounds: 3,
+    roundTimer: 60 * 60, // 60s por round
+    
+    // Jogador: ZORP (Visto de costas em 1º plano)
+    player: {
+        x: 225,
+        y: 282,
+        baseX: 225,
+        hp: 100,
+        maxHp: 100,
+        energy: 100,
+        maxEnergy: 100,
+        hearts: 3,
+        state: 'IDLE', // 'IDLE', 'DUCK', 'DODGE_L', 'DODGE_R', 'JAB', 'DIRETO', 'HOOK', 'UPPERCUT', 'HIT', 'KNOCKDOWN', 'WIN'
+        timer: 0,
+        animFrame: 0,
+        isCounter: false,
+        dodgeCooldown: 0, // Mecânica anti-spam de esquiva
+        dodgeLag: 0       // Período de recuperação pós-esquiva (vulnerável a punição)
+    },
+    
+    // Oponente: MESTRE DO BOXE (De frente no centro do ringue)
+    mestre: {
+        x: 225,
+        y: 195,
+        baseX: 225,
+        hp: 120,
+        maxHp: 120,
+        energy: 100,
+        maxEnergy: 100,
+        hearts: 3,
+        state: 'IDLE', // 'IDLE', 'GUARD', 'TELEGRAPH', 'PUNCHING', 'SPECIAL_WINDUP', 'SPECIAL_CHARGE', 'SPECIAL_PUNCH', 'WHIFFED', 'HIT', 'KNOCKDOWN', 'WIN'
+        timer: 0,
+        animFrame: 0,
+        punchType: 'JAB',
+        aiCooldown: 40,
+        isGuarding: false,
+        specialCooldown: 150, // Temporizador para o super soco carregado
+        specialPhase: 0
+    },
+    
+    refereeCount: 0,
+    refereeTimer: 0,
+    knockdownTarget: '',
+    
+    announcement: 'ROUND 1',
+    announcementTimer: 90,
+    announcementColor: '#f1c40f',
+    
+    sparks: [],     // Partículas de impacto, explosões e exclamação '!'
+    reactions: [],  // Balões de emojis animados
+    shakeTimer: 0,
+    win: false,
+
+    // Golpe Final Cinematográfico (Último Round)
+    finisher: {
+        phase: 0, // 0: Prep / Carregamento, 1: Salto, 2: Impacto Explosivo, 3: Mestre Voando no teto, 4: Queda e Nocaute
+        timer: 0,
+        mestreX: 225,
+        mestreY: 195
+    }
+};
+
+function triggerEmoji(target, img, duration = 90) {
+    boxeGame.reactions = boxeGame.reactions.filter(r => r.target !== target);
+    let rx = (target === 'PLAYER') ? boxeGame.player.x - 35 : boxeGame.mestre.x + 35;
+    let ry = (target === 'PLAYER') ? boxeGame.player.y - 105 : boxeGame.mestre.y - 110;
+    boxeGame.reactions.push({
+        target: target,
+        img: img,
+        x: rx,
+        y: ry,
+        timer: duration,
+        maxTimer: duration
+    });
+}
+
+function spawnBoxeImpact(x, y, type = 'HIT', isCounter = false) {
+    boxeGame.sparks.push({
+        x: x,
+        y: y,
+        type: type, // 'HIT', 'EXPLOSION', 'STARS', 'EXCLAMATION'
+        life: 18,
+        maxLife: 18,
+        isCounter: isCounter,
+        vx: (Math.random() - 0.5) * 2,
+        vy: -1 - Math.random() * 2
+    });
+}
+
+function resetBoxe() {
+    boxeGame.state = 'VS_SCREEN';
+    boxeGame.round = 1;
+    boxeGame.roundTimer = 60 * 60;
+    
+    boxeGame.player.x = 225;
+    boxeGame.player.y = 282;
+    boxeGame.player.hp = 100;
+    boxeGame.player.energy = 100;
+    boxeGame.player.hearts = 3;
+    boxeGame.player.state = 'IDLE';
+    boxeGame.player.timer = 0;
+    boxeGame.player.animFrame = 0;
+    boxeGame.player.isCounter = false;
+    boxeGame.player.dodgeCooldown = 0;
+    boxeGame.player.dodgeLag = 0;
+    
+    boxeGame.mestre.x = 225;
+    boxeGame.mestre.y = 195;
+    boxeGame.mestre.hp = 120;
+    boxeGame.mestre.energy = 100;
+    boxeGame.mestre.hearts = 3;
+    boxeGame.mestre.state = 'IDLE';
+    boxeGame.mestre.timer = 0;
+    boxeGame.mestre.animFrame = 0;
+    boxeGame.mestre.punchType = 'JAB';
+    boxeGame.mestre.aiCooldown = 45;
+    boxeGame.mestre.isGuarding = false;
+    boxeGame.mestre.specialCooldown = 150;
+    boxeGame.mestre.specialPhase = 0;
+    
+    boxeGame.refereeCount = 0;
+    boxeGame.refereeTimer = 0;
+    boxeGame.knockdownTarget = '';
+    
+    boxeGame.announcement = 'ROUND 1';
+    boxeGame.announcementTimer = 90;
+    boxeGame.announcementColor = '#f1c40f';
+    
+    boxeGame.sparks = [];
+    boxeGame.reactions = [];
+    boxeGame.shakeTimer = 0;
+    boxeGame.win = false;
+
+    boxeGame.finisher.phase = 0;
+    boxeGame.finisher.timer = 0;
+    boxeGame.finisher.mestreX = 225;
+    boxeGame.finisher.mestreY = 195;
+}
+
+function updateBoxeGame() {
+    // 1. Tela de VS (Apresentação Inicial)
+    if (boxeGame.state === 'VS_SCREEN') {
+        hintText.innerText = "[ESPAÇO] PARA ENTRAR NO RINGUE E LUTAR!";
+        if (keys.space) {
+            boxeGame.state = 'FIGHTING';
+            keys.space = false;
+            triggerEmoji('MESTRE', imgEmojiMestreSmirk, 75);
+            triggerEmoji('PLAYER', imgEmojiZorpGuard, 75);
+        }
+        return;
+    }
+
+    // 2. Tela de Fim de Jogo (Vitória ou Derrota)
+    if (boxeGame.state === 'GAMEOVER') {
+        hintText.innerText = "[ESPAÇO] RETORNAR AO CLUBE DE BOXE";
+        if (keys.space) {
+            currentScene = "ILHA_ESQUI";
+            keys.space = false;
+            dialogBox.classList.add("show");
+        }
+        return;
+    }
+
+    // Tremor de tela
+    if (boxeGame.shakeTimer > 0) boxeGame.shakeTimer--;
+    
+    // Anúncios na tela
+    if (boxeGame.announcementTimer > 0) boxeGame.announcementTimer--;
+
+    // Partículas de faíscas e efeitos
+    for (let i = boxeGame.sparks.length - 1; i >= 0; i--) {
+        const sp = boxeGame.sparks[i];
+        sp.life--;
+        sp.x += sp.vx;
+        sp.y += sp.vy;
+        if (sp.life <= 0) boxeGame.sparks.splice(i, 1);
+    }
+
+    // Atualização de Emojis de Reação
+    for (let i = boxeGame.reactions.length - 1; i >= 0; i--) {
+        const rx = boxeGame.reactions[i];
+        rx.timer--;
+        if (rx.timer <= 0) boxeGame.reactions.splice(i, 1);
+    }
+
+    // -------------------------------------------------------------
+    // 3. CINEMÁTICA DO GOLPE FINAL (SUPER GANCHO QUE FAZ O MESTRE VOAR)
+    // -------------------------------------------------------------
+    if (boxeGame.state === 'FINISHER') {
+        const f = boxeGame.finisher;
+        f.timer++;
+
+        // Fase 0: Preparação / Windup com fogo azul (45 frames)
+        if (f.phase === 0) {
+            boxeGame.player.state = 'FINISHER_PREP';
+            boxeGame.mestre.state = 'HIT';
+            hintText.innerText = "★ GOLPE FINAL! ZORP CONCENTRA TODA A ENERGIA! ★";
+            if (f.timer % 6 === 0) {
+                spawnBoxeImpact(boxeGame.player.x - 10, boxeGame.player.y - 45, 'HIT', true);
+            }
+            if (f.timer >= 45) {
+                f.phase = 1;
+                f.timer = 0;
+            }
+        }
+        // Fase 1: Salto e Lançamento do Gancho com Pilar de Fogo Azul (25 frames)
+        else if (f.phase === 1) {
+            boxeGame.player.state = 'FINISHER_LAUNCH';
+            boxeGame.shakeTimer = 6;
+            if (f.timer >= 25) {
+                f.phase = 2;
+                f.timer = 0;
+                boxeGame.shakeTimer = 18;
+                spawnBoxeImpact(225, 170, 'EXPLOSION', true);
+                spawnBoxeImpact(225, 150, 'EXCLAMATION', true);
+                spawnBoxeImpact(225, 180, 'STARS', false);
+                triggerEmoji('MESTRE', imgEmojiMestreShock, 90);
+                triggerEmoji('PLAYER', imgEmojiZorpStars, 90);
+            }
+        }
+        // Fase 2: Impacto Estelar Explosivo Devastador (30 frames)
+        else if (f.phase === 2) {
+            boxeGame.player.state = 'FINISHER_IMPACT';
+            if (f.timer % 4 === 0) {
+                spawnBoxeImpact(225 + (Math.random() - 0.5) * 40, 160 + (Math.random() - 0.5) * 30, 'STARS', true);
+            }
+            if (f.timer >= 30) {
+                f.phase = 3;
+                f.timer = 0;
+                f.mestreX = 225;
+                f.mestreY = 195;
+            }
+        }
+        // Fase 3: Mestre Voando Alto pelo Teto da Arena em Giro (100 frames)
+        else if (f.phase === 3) {
+            boxeGame.player.state = 'FINISHER_POSE';
+            const progress = f.timer / 100;
+            // Trajetória parabólica que voa até o topo da arena e cai
+            f.mestreY = 195 - Math.sin(progress * Math.PI) * 230;
+            f.mestreX = 225 + Math.sin(progress * Math.PI * 2) * 50;
+
+            if (f.timer % 6 === 0) {
+                spawnBoxeImpact(f.mestreX, f.mestreY, 'HIT', true);
+            }
+
+            if (f.timer >= 100) {
+                f.phase = 4;
+                f.timer = 0;
+                f.mestreX = 225;
+                f.mestreY = 210;
+                boxeGame.shakeTimer = 16;
+                spawnBoxeImpact(225, 210, 'EXPLOSION', false);
+                spawnBoxeImpact(225, 195, 'STARS', false);
+                triggerEmoji('MESTRE', imgEmojiMestreDizzy, 180);
+                triggerEmoji('PLAYER', imgEmojiZorpStars, 180);
+                boxeGame.announcement = '★ K.O. TOTAL! ★';
+                boxeGame.announcementTimer = 120;
+                boxeGame.announcementColor = '#f1c40f';
+            }
+        }
+        // Fase 4: Mestre esparramado no chão nocauteado & Vitória Total (110 frames)
+        else if (f.phase === 4) {
+            boxeGame.player.state = 'WIN';
+            if (f.timer % 15 === 0) {
+                spawnBoxeImpact(225 + (Math.random() - 0.5) * 30, 190, 'STARS', false);
+            }
+            if (f.timer >= 110) {
+                boxeGame.state = 'GAMEOVER';
+                boxeGame.win = true;
+                insignias.boxe = true;
+                insignias.esqui = true;
+                dialogText.innerHTML = "> MESTRE DO BOXE: (Zonzo na lona) Que... super gancho lendário... Você fez o Mestre voar! O cinturão galáctico é seu, Zorp!";
+            }
+        }
+        return;
+    }
+
+    // -------------------------------------------------------------
+    // 4. CONTAGEM DE NOCAUTE (KNOCKDOWN COMUM NOS ROUNDS 1 E 2)
+    // -------------------------------------------------------------
+    if (boxeGame.state === 'KNOCKDOWN') {
+        boxeGame.refereeTimer++;
+        if (boxeGame.refereeTimer >= 38) {
+            boxeGame.refereeTimer = 0;
+            boxeGame.refereeCount++;
+            boxeGame.announcement = `${boxeGame.refereeCount}!`;
+            boxeGame.announcementTimer = 30;
+            boxeGame.announcementColor = '#f1c40f';
+
+            if (boxeGame.knockdownTarget === 'MESTRE') {
+                if (boxeGame.refereeCount >= 8 && boxeGame.mestre.hearts > 1) {
+                    // Mestre levanta
+                    boxeGame.mestre.hearts--;
+                    boxeGame.mestre.hp = Math.floor(boxeGame.mestre.maxHp * 0.55);
+                    boxeGame.mestre.state = 'IDLE';
+                    boxeGame.state = 'FIGHTING';
+                    boxeGame.announcement = 'FIGHT!';
+                    boxeGame.announcementTimer = 45;
+                    triggerEmoji('MESTRE', imgEmojiMestreCocky, 75);
+                } else if (boxeGame.refereeCount >= 10 || boxeGame.mestre.hearts <= 1) {
+                    boxeGame.state = 'GAMEOVER';
+                    boxeGame.win = true;
+                    boxeGame.player.state = 'WIN';
+                    insignias.boxe = true;
+                    insignias.esqui = true;
+                    dialogText.innerHTML = "> MESTRE DO BOXE: Nocaute indiscutível! Você provou seu valor no ringue!";
+                }
+            } else if (boxeGame.knockdownTarget === 'PLAYER') {
+                if (boxeGame.refereeCount >= 8 && boxeGame.player.hearts > 1) {
+                    // Zorp levanta
+                    boxeGame.player.hearts--;
+                    boxeGame.player.hp = Math.floor(boxeGame.player.maxHp * 0.55);
+                    boxeGame.player.state = 'IDLE';
+                    boxeGame.state = 'FIGHTING';
+                    boxeGame.announcement = 'FIGHT!';
+                    boxeGame.announcementTimer = 45;
+                    triggerEmoji('PLAYER', imgEmojiZorpAngry, 75);
+                } else if (boxeGame.refereeCount >= 10 || boxeGame.player.hearts <= 1) {
+                    // Derrota
+                    boxeGame.state = 'GAMEOVER';
+                    boxeGame.win = false;
+                    boxeGame.mestre.state = 'WIN';
+                    dialogText.innerHTML = "> MESTRE DO BOXE: Cuidado com meu soco especial carregado! Preste atenção na carga e esquive no tempo certo com [W] ou [A/D]!";
+                }
+            }
+        }
+        return;
+    }
+
+    // -------------------------------------------------------------
+    // 5. COMBATE EM TEMPO REAL (FIGHTING)
+    // -------------------------------------------------------------
+    hintText.innerText = "[W] ESQUIVAR BAIXO | [A/D] PENDULAR | [J/Z] JAB | [K/X] DIRETO | [U/C] HOOK | [I/V] UPPERCUT";
+
+    // Cronômetro do Round
+    boxeGame.roundTimer--;
+    if (boxeGame.roundTimer <= 0) {
+        boxeGame.round++;
+        if (boxeGame.round > boxeGame.maxRounds) {
+            // Decisão por pontos
+            if (boxeGame.player.hp >= boxeGame.mestre.hp) {
+                boxeGame.state = 'GAMEOVER';
+                boxeGame.win = true;
+                insignias.boxe = true;
+                insignias.esqui = true;
+                dialogText.innerHTML = "> ÁRBITRO: Vitória por decisão unânime! Zorp é o grande campeão!";
+            } else {
+                boxeGame.state = 'GAMEOVER';
+                boxeGame.win = false;
+                dialogText.innerHTML = "> ÁRBITRO: Vitória do Mestre por pontos! Continue treinando suas esquivas!";
+            }
+            return;
+        } else {
+            boxeGame.roundTimer = 60 * 60;
+            boxeGame.announcement = (boxeGame.round === 3) ? '★ ROUND FINAL ★' : `ROUND ${boxeGame.round}`;
+            boxeGame.announcementTimer = 85;
+            triggerEmoji('MESTRE', imgEmojiMestreSmirk, 70);
+            triggerEmoji('PLAYER', imgEmojiZorpGuard, 70);
+        }
+    }
+
+    const p = boxeGame.player;
+    const m = boxeGame.mestre;
+
+    // Atualização de Cooldowns e Recuperação (Anti-Spam)
+    if (p.dodgeCooldown > 0) p.dodgeCooldown--;
+    if (p.dodgeLag > 0) p.dodgeLag--;
+    if (m.specialCooldown > 0) m.specialCooldown--;
+
+    // Regeneração de Estamina / Energia
+    if (p.energy < p.maxEnergy && p.state !== 'ATTACKING') {
+        p.energy = Math.min(p.maxEnergy, p.energy + 0.75);
+    }
+    if (m.energy < m.maxEnergy) {
+        m.energy = Math.min(m.maxEnergy, m.energy + 0.75);
+    }
+
+    // Animação de ginga (Idle bounce)
+    p.animFrame = Math.floor(Date.now() / 150) % 3;
+    m.animFrame = Math.floor(Date.now() / 150) % 3;
+
+    // -------------------------------------------------------------
+    // CONTROLES DE ESQUIVA E ATAQUE DO ZORP (COSTAS)
+    // -------------------------------------------------------------
+    // OBSERVAÇÃO: Não há mais guarda com [S]! Os golpes do mestre são fortes demais.
+    if (p.state === 'IDLE') {
+        // TENTATIVA DE ESQUIVA (COM SISTEMA ANTI-SPAM)
+        if (keys.w || keys.a || keys.d) {
+            if (p.dodgeCooldown > 0 || p.dodgeLag > 0) {
+                // Spam de esquiva bloqueado! Não consegue esquivar de novo e perde fôlego
+                if (p.energy >= 3) p.energy -= 3;
+                if (boxeGame.announcementTimer <= 0) {
+                    boxeGame.announcement = 'RECUPERANDO!';
+                    boxeGame.announcementTimer = 16;
+                    boxeGame.announcementColor = '#e67e22';
+                }
+                keys.w = false; keys.a = false; keys.d = false;
+            } else if (p.energy >= 14) {
+                p.energy -= 14;
+                p.dodgeCooldown = 32; // Cooldown total para nova esquiva
+
+                if (keys.w) {
+                    p.state = 'DUCK';
+                    p.timer = 15;
+                    keys.w = false;
+                    triggerEmoji('PLAYER', imgEmojiZorpAlert, 40);
+                } else if (keys.a) {
+                    p.state = 'DODGE_L';
+                    p.timer = 15;
+                    p.x = Math.max(175, p.x - 22);
+                    keys.a = false;
+                } else if (keys.d) {
+                    p.state = 'DODGE_R';
+                    p.timer = 15;
+                    p.x = Math.min(275, p.x + 22);
+                    keys.d = false;
+                }
+            } else {
+                keys.w = false; keys.a = false; keys.d = false;
+            }
+        }
+        // GOLPES / SOCOS
+        else if ((keys.j || keys.z) && p.energy >= 8) {
+            p.state = 'JAB';
+            p.timer = 10;
+            p.energy -= 8;
+            keys.j = false; keys.z = false;
+        } else if ((keys.k || keys.x) && p.energy >= 14) {
+            p.state = 'DIRETO';
+            p.timer = 14;
+            p.energy -= 14;
+            keys.k = false; keys.x = false;
+        } else if ((keys.u || keys.c) && p.energy >= 20) {
+            p.state = 'HOOK';
+            p.timer = 18;
+            p.energy -= 20;
+            keys.u = false; keys.c = false;
+        } else if ((keys.i || keys.v) && p.energy >= 26) {
+            p.state = 'UPPERCUT';
+            p.timer = 22;
+            p.energy -= 26;
+            keys.i = false; keys.v = false;
+        }
+    } else {
+        p.timer--;
+
+        // Conexão do Impacto do Golpe do Zorp no Mestre
+        const isHitFrame = (p.state === 'JAB' && p.timer === 5) ||
+                           (p.state === 'DIRETO' && p.timer === 7) ||
+                           (p.state === 'HOOK' && p.timer === 9) ||
+                           (p.state === 'UPPERCUT' && p.timer === 11);
+
+        if (isHitFrame) {
+            let baseDmg = (p.state === 'JAB') ? 9 : (p.state === 'DIRETO' ? 18 : (p.state === 'HOOK' ? 26 : 34));
+            const hitX = m.x;
+            const hitY = m.y - 50;
+
+            // Se o Mestre estiver atordoado após errar especial ou soco -> CONTRAGOLPE CRÍTICO (3x no especial, 2x normal!)
+            if (m.state === 'WHIFFED') {
+                const counterMult = (m.specialPhase > 0) ? 3 : 2;
+                const counterDmg = baseDmg * counterMult;
+                m.hp = Math.max(0, m.hp - counterDmg);
+                m.state = 'HIT';
+                m.timer = 22;
+                boxeGame.shakeTimer = 14;
+                spawnBoxeImpact(hitX, hitY, 'EXPLOSION', true);
+                spawnBoxeImpact(hitX, hitY - 20, 'EXCLAMATION', true);
+                spawnBoxeImpact(hitX, hitY, 'STARS', false);
+                boxeGame.announcement = (counterMult === 3) ? '★ SUPER COUNTER 3X! ★' : '★ COUNTER CRÍTICO! ★';
+                boxeGame.announcementTimer = 45;
+                boxeGame.announcementColor = '#00e5ff';
+                triggerEmoji('MESTRE', imgEmojiMestreDizzy, 60);
+                triggerEmoji('PLAYER', imgEmojiZorpStars, 60);
+                m.specialPhase = 0;
+            } 
+            else if (m.state === 'TELEGRAPH') {
+                const counterDmg = baseDmg * 2;
+                m.hp = Math.max(0, m.hp - counterDmg);
+                m.state = 'HIT';
+                m.timer = 18;
+                boxeGame.shakeTimer = 12;
+                spawnBoxeImpact(hitX, hitY, 'EXPLOSION', true);
+                spawnBoxeImpact(hitX, hitY - 20, 'EXCLAMATION', true);
+                boxeGame.announcement = '★ INTERRUPÇÃO! ★';
+                boxeGame.announcementTimer = 40;
+                boxeGame.announcementColor = '#00e5ff';
+                triggerEmoji('MESTRE', imgEmojiMestreDizzy, 50);
+            }
+            // Se o Mestre estiver em guarda
+            else if (m.isGuarding) {
+                m.hp = Math.max(0, m.hp - Math.floor(baseDmg * 0.25));
+                spawnBoxeImpact(hitX, hitY, 'HIT', false);
+            }
+            // Impacto normal
+            else {
+                m.hp = Math.max(0, m.hp - baseDmg);
+                m.state = 'HIT';
+                m.timer = 12;
+                boxeGame.shakeTimer = (baseDmg > 20) ? 9 : 5;
+                spawnBoxeImpact(hitX, hitY, 'HIT', false);
+                if (baseDmg > 20) spawnBoxeImpact(hitX, hitY - 15, 'EXCLAMATION', false);
+            }
+
+            // Checar se o Mestre foi derrotado
+            if (m.hp <= 0) {
+                // NO ÚLTIMO ROUND: DISPARA O GOLPE FINAL CINEMATOGRÁFICO DO GANCHO!
+                if (boxeGame.round >= boxeGame.maxRounds || m.hearts <= 1) {
+                    boxeGame.state = 'FINISHER';
+                    boxeGame.finisher.phase = 0;
+                    boxeGame.finisher.timer = 0;
+                    boxeGame.finisher.mestreX = m.x;
+                    boxeGame.finisher.mestreY = m.y;
+                    boxeGame.announcement = '★ GOLPE FINAL! ★';
+                    boxeGame.announcementTimer = 90;
+                    boxeGame.announcementColor = '#f1c40f';
+                    triggerEmoji('PLAYER', imgEmojiZorpStars, 90);
+                    triggerEmoji('MESTRE', imgEmojiMestreShock, 90);
+                } else {
+                    // Knockdown comum em rounds anteriores
+                    m.state = 'KNOCKDOWN';
+                    boxeGame.state = 'KNOCKDOWN';
+                    boxeGame.knockdownTarget = 'MESTRE';
+                    boxeGame.refereeCount = 0;
+                    boxeGame.refereeTimer = 0;
+                    boxeGame.announcement = 'KNOCKDOWN!';
+                    boxeGame.announcementTimer = 45;
+                    boxeGame.announcementColor = '#e74c3c';
+                    triggerEmoji('MESTRE', imgEmojiMestreDizzy, 90);
+                    triggerEmoji('PLAYER', imgEmojiZorpStars, 90);
+                }
+            }
+        }
+
+        if (p.timer <= 0) {
+            // Se estava esquivando, entra na janela de lag pós-esquiva (anti-spam)
+            if (p.state === 'DUCK' || p.state === 'DODGE_L' || p.state === 'DODGE_R') {
+                p.dodgeLag = 16;
+            }
+            p.state = 'IDLE';
+            // Retorna suavemente para a posição central após esquivas
+            if (p.x !== p.baseX) p.x += (p.baseX - p.x) * 0.35;
+        }
+    }
+
+    // -------------------------------------------------------------
+    // INTELIGÊNCIA ARTIFICIAL DO MESTRE (FRENTE)
+    // -------------------------------------------------------------
+    if (m.state === 'IDLE') {
+        m.aiCooldown--;
+
+        if (m.aiCooldown <= 0) {
+            // Checar se ativa o NOVO GOLPE ESPECIAL CARREGADO (Estilo Punch-Out)
+            const canSpecial = m.specialCooldown <= 0 && (boxeGame.round >= 2 || m.hp < 90 || Math.random() < 0.40);
+
+            if (canSpecial) {
+                // FASE 1 DO ESPECIAL: WINDUP (Rugido / Pose aberta telegrafada)
+                m.state = 'SPECIAL_WINDUP';
+                m.specialPhase = 1;
+                m.timer = 26; // Aviso telegrafado de 26 frames
+                m.specialCooldown = 280 + Math.floor(Math.random() * 80);
+                boxeGame.announcement = '★ SOCO ESPECIAL CARREGANDO! ★';
+                boxeGame.announcementTimer = 55;
+                boxeGame.announcementColor = '#e74c3c';
+                boxeGame.shakeTimer = 6;
+                triggerEmoji('MESTRE', imgEmojiMestreSmirk, 55);
+            } else {
+                const rnd = Math.random();
+                if (rnd < 0.30) {
+                    // Jab rápido
+                    m.state = 'PUNCHING';
+                    m.punchType = 'JAB';
+                    m.timer = 13;
+                    m.aiCooldown = 40 + Math.floor(Math.random() * 20);
+                } else if (rnd < 0.80) {
+                    // Golpe pesado telegrafado (Direto, Gancho ou Uppercut) com aviso '!'
+                    m.state = 'TELEGRAPH';
+                    m.punchType = (rnd < 0.50) ? 'DIRETO' : (rnd < 0.65 ? 'HOOK' : 'UPPERCUT');
+                    m.timer = 24; // Janela para esquivar
+                    m.aiCooldown = 45 + Math.floor(Math.random() * 25);
+                    triggerEmoji('MESTRE', imgEmojiMestreSmirk, 40);
+                } else {
+                    // Guarda defensiva
+                    m.isGuarding = true;
+                    m.timer = 22;
+                    m.aiCooldown = 38;
+                }
+            }
+        }
+    } 
+    // GOLPE ESPECIAL DO MESTRE: FASE 1 (WINDUP)
+    else if (m.state === 'SPECIAL_WINDUP') {
+        m.timer--;
+        if (m.timer <= 0) {
+            // Transição para a FASE 2: CARGA BAIXA COM PUNHO ENERGIZADO
+            m.state = 'SPECIAL_CHARGE';
+            m.specialPhase = 2;
+            m.timer = 26; // Carga visual intensa
+            spawnBoxeImpact(m.x, m.y - 35, 'STARS', true);
+        }
+    }
+    // GOLPE ESPECIAL DO MESTRE: FASE 2 (CARGA)
+    else if (m.state === 'SPECIAL_CHARGE') {
+        m.timer--;
+        if (m.timer % 6 === 0) {
+            spawnBoxeImpact(m.x + (Math.random() - 0.5) * 25, m.y - 35, 'HIT', true);
+        }
+        if (m.timer <= 0) {
+            // Transição para a FASE 3: DISPARO DO SUPER SOCO ARRASADOR
+            m.state = 'SPECIAL_PUNCH';
+            m.specialPhase = 3;
+            m.timer = 16;
+            boxeGame.shakeTimer = 10;
+        }
+    }
+    // GOLPE ESPECIAL DO MESTRE: FASE 3 (DISPARO DO SOCO COM SPEEDLINES)
+    else if (m.state === 'SPECIAL_PUNCH') {
+        m.timer--;
+        if (m.timer === 9) {
+            const isDodging = (p.state === 'DUCK' || p.state === 'DODGE_L' || p.state === 'DODGE_R') && p.timer > 0;
+            if (isDodging) {
+                // ESQUIVA COM SUCESSO! O Mestre voa a seco no vazio e fica zonzo!
+                m.state = 'WHIFFED';
+                m.timer = 52; // Enorme janela de vulnerabilidade (3x counter!)
+                boxeGame.announcement = '★ ESQUIVA PERFEITA! CRÍTICO 3X! ★';
+                boxeGame.announcementTimer = 50;
+                boxeGame.announcementColor = '#00e5ff';
+                spawnBoxeImpact(p.x, p.y - 70, 'STARS', false);
+                triggerEmoji('PLAYER', imgEmojiZorpStars, 60);
+                triggerEmoji('MESTRE', imgEmojiMestreShock, 60);
+            } else {
+                // TOMOU O ESPECIAL EM CHEIO! Dano maciço arrasador (48 HP!)
+                p.hp = Math.max(0, p.hp - 48);
+                p.state = 'HIT';
+                p.timer = 18;
+                boxeGame.shakeTimer = 24;
+                spawnBoxeImpact(p.x, p.y - 65, 'EXPLOSION', true);
+                spawnBoxeImpact(p.x, p.y - 85, 'EXCLAMATION', true);
+                triggerEmoji('PLAYER', imgEmojiZorpDizzy, 90);
+                triggerEmoji('MESTRE', imgEmojiMestreCocky, 90);
+
+                if (p.hp <= 0) {
+                    p.state = 'KNOCKDOWN';
+                    boxeGame.state = 'KNOCKDOWN';
+                    boxeGame.knockdownTarget = 'PLAYER';
+                    boxeGame.refereeCount = 0;
+                    boxeGame.refereeTimer = 0;
+                    boxeGame.announcement = 'KNOCKDOWN!';
+                    boxeGame.announcementTimer = 45;
+                    boxeGame.announcementColor = '#e74c3c';
+                    triggerEmoji('PLAYER', imgEmojiZorpSwirl, 90);
+                    triggerEmoji('MESTRE', imgEmojiMestreCocky, 90);
+                }
+            }
+        }
+        if (m.timer <= 0) {
+            m.state = 'IDLE';
+            m.specialPhase = 0;
+        }
+    }
+    // GOLPE COMUM TELEGRAFADO
+    else if (m.state === 'TELEGRAPH') {
+        m.timer--;
+        if (m.timer <= 0) {
+            const isDodging = (p.state === 'DUCK' || p.state === 'DODGE_L' || p.state === 'DODGE_R') && p.timer > 0;
+            if (isDodging) {
+                m.state = 'WHIFFED';
+                m.timer = 36;
+                boxeGame.announcement = 'ESQUIVOU!';
+                boxeGame.announcementTimer = 30;
+                boxeGame.announcementColor = '#2ecc71';
+                spawnBoxeImpact(p.x, p.y - 70, 'STARS', false);
+                triggerEmoji('PLAYER', imgEmojiZorpStars, 50);
+            } else {
+                m.state = 'PUNCHING';
+                m.timer = 12;
+            }
+        }
+    } 
+    // GOLPE COMUM EM EXECUÇÃO
+    else if (m.state === 'PUNCHING') {
+        m.timer--;
+        if (m.timer === 6) {
+            const isDodging = (p.state === 'DUCK' || p.state === 'DODGE_L' || p.state === 'DODGE_R') && p.timer > 0;
+            if (!isDodging) {
+                let mDmg = (m.punchType === 'JAB') ? 10 : (m.punchType === 'DIRETO' ? 18 : 26);
+
+                // Se o Zorp estava no lag de recuperação pós-esquiva -> PUNISH / COUNTER-HIT!
+                if (p.dodgeLag > 0) {
+                    mDmg = Math.floor(mDmg * 1.5);
+                    boxeGame.announcement = 'PUNISH! CONTRAGOLPE!';
+                    boxeGame.announcementTimer = 30;
+                    boxeGame.announcementColor = '#e74c3c';
+                }
+
+                p.hp = Math.max(0, p.hp - mDmg);
+                p.state = 'HIT';
+                p.timer = 14;
+                boxeGame.shakeTimer = 10;
+                spawnBoxeImpact(p.x, p.y - 65, 'HIT', false);
+                spawnBoxeImpact(p.x, p.y - 85, 'EXCLAMATION', false);
+                triggerEmoji('PLAYER', imgEmojiZorpDizzy, 60);
+
+                if (p.hp <= 0) {
+                    p.state = 'KNOCKDOWN';
+                    boxeGame.state = 'KNOCKDOWN';
+                    boxeGame.knockdownTarget = 'PLAYER';
+                    boxeGame.refereeCount = 0;
+                    boxeGame.refereeTimer = 0;
+                    boxeGame.announcement = 'KNOCKDOWN!';
+                    boxeGame.announcementTimer = 45;
+                    boxeGame.announcementColor = '#e74c3c';
+                    triggerEmoji('PLAYER', imgEmojiZorpSwirl, 90);
+                    triggerEmoji('MESTRE', imgEmojiMestreCocky, 90);
+                }
+            }
+        }
+        if (m.timer <= 0) {
+            m.state = 'IDLE';
+            m.isGuarding = false;
+        }
+    } else if (m.state === 'WHIFFED') {
+        m.timer--;
+        if (m.timer <= 0) {
+            m.state = 'IDLE';
+            m.specialPhase = 0;
+        }
+    } else if (m.state === 'HIT') {
+        m.timer--;
+        if (m.timer <= 0) {
+            m.state = 'IDLE';
+            m.specialPhase = 0;
+        }
+    }
+}
+
+function drawBoxeGame() {
+    let shakeX = 0, shakeY = 0;
+    if (boxeGame.shakeTimer > 0) {
+        shakeX = (Math.random() - 0.5) * 8;
+        shakeY = (Math.random() - 0.5) * 8;
+    }
+
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    // 1. TELA DE VS (Apresentação Inicial)
+    if (boxeGame.state === 'VS_SCREEN') {
+        if (imgBoxeTelaVs.complete && imgBoxeTelaVs.naturalWidth > 0) {
+            ctx.drawImage(imgBoxeTelaVs, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = "#0c1b33";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        ctx.fillStyle = "rgba(10, 15, 30, 0.88)";
+        ctx.fillRect(35, 210, canvas.width - 70, 70);
+        ctx.strokeStyle = "#f1c40f";
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(35, 210, canvas.width - 70, 70);
+
+        ctx.fillStyle = "#f1c40f";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("★ DISPUTA DO CINTURÃO GALÁCTICO ★", canvas.width / 2, 233);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 9px monospace";
+        ctx.fillText("ESTILO PUNCH-OUT: DESVIE COM [W] OU [A/D]! CUIDADO COM O SOCO ESPECIAL!", canvas.width / 2, 250);
+
+        ctx.fillStyle = (Date.now() % 600 < 300) ? "#2ecc71" : "#ffffff";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText("[ESPAÇO] ENTRAR NO RINGUE E LUTAR!", canvas.width / 2, 270);
+        ctx.textAlign = "left";
+        ctx.restore();
+        return;
+    }
+
+    // 2. Fundo da Nova Arena de Boxe Espaçosa (Arena_Boxe.png)
+    if (imgBoxeArenaBg.complete && imgBoxeArenaBg.naturalWidth > 0) {
+        ctx.drawImage(imgBoxeArenaBg, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#101820";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#1e3799";
+        ctx.fillRect(40, 130, 370, 150);
+    }
+
+    // -------------------------------------------------------------
+    // 3. DESENHO DO OPONENTE: MESTRE DO BOXE (FRENTE / CENTRO DO RINGUE)
+    // -------------------------------------------------------------
+    const m = boxeGame.mestre;
+    let mestreImg = imgMestreBoxeFrontIdle0;
+    const mFrames = [imgMestreBoxeFrontIdle0, imgMestreBoxeFrontIdle1, imgMestreBoxeFrontIdle2];
+
+    if (boxeGame.state === 'FINISHER') {
+        const f = boxeGame.finisher;
+        if (f.phase === 0 || f.phase === 1 || f.phase === 2) {
+            mestreImg = imgMestreBoxeFrontHit;
+        } else if (f.phase === 3) {
+            mestreImg = (Math.floor(f.timer / 8) % 2 === 0) ? imgMestreFinisherFly0 : imgMestreFinisherFly1;
+        } else if (f.phase === 4) {
+            mestreImg = imgMestreFinisherCrash;
+        }
+    } else if (boxeGame.state === 'KNOCKDOWN' && boxeGame.knockdownTarget === 'MESTRE') {
+        // Sequência dramática de queda e levantamento sincronizada com a contagem do árbitro (1 a 10)
+        if (boxeGame.refereeCount <= 3) {
+            mestreImg = imgMestreBoxeFrontMat; // De bruços estirado na lona
+        } else if (boxeGame.refereeCount <= 6) {
+            mestreImg = imgMestreBoxeFrontKnockdown; // Sentado na lona atordoado
+        } else if (boxeGame.refereeCount <= 8) {
+            mestreImg = imgMestreBoxeFrontGetup; // De joelhos empurrando o chão com as luvas
+        } else {
+            mestreImg = imgMestreBoxeFrontRise; // Se erguendo de pé
+        }
+    } else {
+        if (m.state === 'IDLE' || m.state === 'TELEGRAPH') {
+            mestreImg = m.isGuarding ? imgMestreBoxeFrontGuard : mFrames[m.animFrame % mFrames.length];
+        } else if (m.state === 'SPECIAL_WINDUP') {
+            mestreImg = imgMestreBoxeSpecialWindup;
+        } else if (m.state === 'SPECIAL_CHARGE') {
+            mestreImg = imgMestreBoxeSpecialCharge;
+        } else if (m.state === 'SPECIAL_PUNCH') {
+            mestreImg = imgMestreBoxeSpecialPunch;
+        } else if (m.state === 'WHIFFED') {
+            mestreImg = imgMestreBoxeFrontHit;
+        } else if (m.state === 'PUNCHING') {
+            mestreImg = (m.punchType === 'JAB') ? imgMestreBoxeFrontJab : imgMestreBoxeFrontHeavy;
+        } else if (m.state === 'HIT') {
+            mestreImg = imgMestreBoxeFrontHit;
+        } else if (m.state === 'KNOCKDOWN') {
+            mestreImg = imgMestreBoxeFrontKnockdown;
+        } else if (m.state === 'WIN') {
+            mestreImg = imgMestreBoxeFrontWin;
+        }
+    }
+
+    let mW = 70;
+    let mH = 110;
+    if (boxeGame.state === 'FINISHER' && boxeGame.finisher.phase === 4) {
+        mW = 100; mH = 45;
+    } else if (mestreImg === imgMestreBoxeFrontMat) {
+        mW = 110; mH = 65;
+    } else if (mestreImg === imgMestreBoxeFrontKnockdown) {
+        mW = 85; mH = 100;
+    } else if (mestreImg === imgMestreBoxeFrontGetup) {
+        mW = 80; mH = 95;
+    } else if (mestreImg === imgMestreBoxeSpecialCharge) {
+        mW = 72; mH = 105;
+    } else if (mestreImg === imgMestreBoxeSpecialPunch) {
+        mW = 76; mH = 118;
+    }
+
+    const drawMx = (boxeGame.state === 'FINISHER') ? boxeGame.finisher.mestreX : m.x;
+    const drawMy = (boxeGame.state === 'FINISHER') ? boxeGame.finisher.mestreY : m.y;
+
+    if (mestreImg && mestreImg.complete && mestreImg.naturalWidth > 0) {
+        // Sombra no tablado
+        if (boxeGame.state !== 'FINISHER' || boxeGame.finisher.phase < 3 || boxeGame.finisher.phase === 4) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.beginPath();
+            const shadowRadius = (mestreImg === imgMestreBoxeFrontMat) ? 38 : 26;
+            ctx.ellipse(drawMx, drawMy + 2, shadowRadius, 7, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // AURA E AVISO DO SOCO ESPECIAL DO MESTRE (Punch-Out Killer Move)
+        if ((m.state === 'SPECIAL_WINDUP' || m.state === 'SPECIAL_CHARGE') && boxeGame.state !== 'FINISHER') {
+            const auraColor = (Date.now() % 160 < 80) ? "rgba(231, 76, 60, 0.45)" : "rgba(241, 196, 15, 0.45)";
+            ctx.fillStyle = auraColor;
+            ctx.beginPath();
+            ctx.ellipse(drawMx, drawMy - mH / 2, mW * 0.7, mH * 0.65, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = (Date.now() % 160 < 80) ? "#f1c40f" : "#e74c3c";
+            ctx.font = "bold 26px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("!", drawMx, drawMy - mH - 12);
+            ctx.textAlign = "left";
+        }
+
+        // Alerta visual de Telegraph normal ('!' aviso para esquivar)
+        if (m.state === 'TELEGRAPH' && boxeGame.state !== 'FINISHER') {
+            ctx.fillStyle = (Date.now() % 200 < 100) ? "#f1c40f" : "#e74c3c";
+            ctx.font = "bold 24px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("!", drawMx, drawMy - mH - 10);
+            ctx.textAlign = "left";
+        }
+
+        // Estrelas de atordoado se errou o golpe (WHIFFED)
+        if (m.state === 'WHIFFED' && boxeGame.state !== 'FINISHER') {
+            ctx.fillStyle = "#f1c40f";
+            ctx.font = "bold 15px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("★ ★ ★", drawMx, drawMy - mH - 6);
+            ctx.textAlign = "left";
+        }
+
+        ctx.drawImage(mestreImg, drawMx - mW / 2, drawMy - mH, mW, mH);
+
+        // Speedline de fogo atravessando a tela no disparo do soco especial
+        if (m.state === 'SPECIAL_PUNCH' && imgBoxeFxSpeedline.complete && imgBoxeFxSpeedline.naturalWidth > 0) {
+            ctx.drawImage(imgBoxeFxSpeedline, drawMx - 75, drawMy - mH + 25, 150, 45);
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 4. DESENHO DO JOGADOR: ZORP (COSTAS / 1º PLANO PUNCH-OUT)
+    // -------------------------------------------------------------
+    const p = boxeGame.player;
+    let zorpImg = imgZorpBoxeBackIdle0;
+    const zFrames = [imgZorpBoxeBackIdle0, imgZorpBoxeBackIdle1, imgZorpBoxeBackIdle2];
+
+    if (boxeGame.state === 'FINISHER') {
+        const f = boxeGame.finisher;
+        if (f.phase === 0) {
+            zorpImg = imgZorpFinisherPrep;
+        } else if (f.phase === 1) {
+            zorpImg = (f.timer < 12) ? imgZorpFinisherLaunch : imgZorpFinisherLaunchArc;
+        } else if (f.phase === 2) {
+            zorpImg = imgZorpFinisherImpact;
+        } else {
+            zorpImg = (f.phase === 4) ? imgZorpBoxeBackWin : imgZorpFinisherPose;
+        }
+    } else if (boxeGame.state === 'KNOCKDOWN' && boxeGame.knockdownTarget === 'PLAYER') {
+        // Animação dramática do Zorp caído e se erguendo na contagem
+        if (boxeGame.refereeCount === 0) {
+            zorpImg = (boxeGame.refereeTimer < 20) ? imgZorpBoxeBackFall : imgZorpBoxeBackDizzyKnees;
+        } else if (boxeGame.refereeCount <= 4) {
+            zorpImg = imgZorpBoxeBackKnockdown; // Estirado na lona
+        } else if (boxeGame.refereeCount <= 6) {
+            zorpImg = imgZorpBoxeBackSitup; // Empurrando com as mãos para sentar
+        } else if (boxeGame.refereeCount <= 8) {
+            zorpImg = imgZorpBoxeBackPant; // De joelhos ofegante recuperando o fôlego
+        } else {
+            zorpImg = imgZorpBoxeBackIdle0; // Levantando de volta
+        }
+    } else {
+        if (p.state === 'IDLE') {
+            zorpImg = zFrames[p.animFrame % zFrames.length];
+        } else if (p.state === 'DUCK') {
+            zorpImg = imgZorpBoxeBackDuck;
+        } else if (p.state === 'DODGE_L') {
+            zorpImg = imgZorpBoxeBackDodgeL;
+        } else if (p.state === 'DODGE_R') {
+            zorpImg = imgZorpBoxeBackDodgeR;
+        } else if (p.state === 'JAB') {
+            zorpImg = imgZorpBoxeBackJab;
+        } else if (p.state === 'DIRETO') {
+            zorpImg = imgZorpBoxeBackDireto;
+        } else if (p.state === 'HOOK') {
+            zorpImg = imgZorpBoxeBackHook;
+        } else if (p.state === 'UPPERCUT') {
+            zorpImg = imgZorpBoxeBackUppercut;
+        } else if (p.state === 'HIT') {
+            zorpImg = imgZorpBoxeBackHit;
+        } else if (p.state === 'KNOCKDOWN') {
+            zorpImg = imgZorpBoxeBackKnockdown;
+        } else if (p.state === 'WIN') {
+            zorpImg = imgZorpBoxeBackWin;
+        }
+    }
+
+    let zW = 75;
+    let zH = 110;
+    if (boxeGame.state === 'FINISHER' && boxeGame.finisher.phase === 2) {
+        zW = 115; zH = 125;
+    } else if (zorpImg === imgZorpBoxeBackKnockdown) {
+        zW = 105; zH = 75;
+    } else if (zorpImg === imgZorpBoxeBackSitup) {
+        zW = 72; zH = 85;
+    } else if (zorpImg === imgZorpBoxeBackPant) {
+        zW = 76; zH = 90;
+    } else if (zorpImg === imgZorpBoxeBackDizzyKnees) {
+        zW = 82; zH = 95;
+    } else if (zorpImg === imgZorpBoxeBackFall) {
+        zW = 80; zH = 100;
+    }
+
+    const drawZx = p.x;
+    const drawZy = p.y;
+
+    if (zorpImg && zorpImg.complete && zorpImg.naturalWidth > 0) {
+        // Sombra de Zorp
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.beginPath();
+        const zShadowRadius = (zorpImg === imgZorpBoxeBackKnockdown) ? 36 : 28;
+        ctx.ellipse(drawZx, drawZy - 2, zShadowRadius, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Indicador visual de recuperação pós-esquiva (Lag / Vulnerável a contragolpe)
+        if (p.dodgeLag > 0 && boxeGame.state === 'FIGHTING') {
+            ctx.fillStyle = "rgba(230, 126, 34, 0.35)";
+            ctx.beginPath();
+            ctx.ellipse(drawZx, drawZy - zH / 2, zW * 0.6, zH * 0.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.drawImage(zorpImg, drawZx - zW / 2, drawZy - zH, zW, zH);
+    }
+
+    // -------------------------------------------------------------
+    // 5. EFEITOS DE IMPACTO, FAÍSCAS E EXCLAMAÇÕES
+    // -------------------------------------------------------------
+    boxeGame.sparks.forEach(sp => {
+        let fxImg = imgBoxeFxHitspark;
+        if (sp.type === 'EXPLOSION') fxImg = imgBoxeFxExplosion;
+        else if (sp.type === 'STARS') fxImg = imgBoxeFxStars;
+        else if (sp.type === 'EXCLAMATION') fxImg = imgBoxeFxExclamation;
+
+        if (fxImg.complete && fxImg.naturalWidth > 0) {
+            const fw = (sp.type === 'EXCLAMATION') ? 22 : (sp.type === 'EXPLOSION' ? 55 : 40);
+            const fh = (sp.type === 'EXCLAMATION') ? 45 : (sp.type === 'EXPLOSION' ? 55 : 40);
+            ctx.drawImage(fxImg, sp.x - fw / 2, sp.y - fh / 2, fw, fh);
+        } else {
+            ctx.fillStyle = sp.isCounter ? "#00e5ff" : "#f1c40f";
+            ctx.beginPath(); ctx.arc(sp.x, sp.y, 14, 0, Math.PI * 2); ctx.fill();
+        }
+    });
+
+    // -------------------------------------------------------------
+    // 6. BALÕES DE EMOJIS DE REAÇÃO (PRÉ-PROGRAMADOS)
+    // -------------------------------------------------------------
+    boxeGame.reactions.forEach(rx => {
+        if (rx.img && rx.img.complete && rx.img.naturalWidth > 0) {
+            const scale = Math.min(1.0, (rx.maxTimer - rx.timer) / 8);
+            const alpha = Math.min(1.0, rx.timer / 15);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(rx.x, rx.y);
+            ctx.scale(scale, scale);
+
+            // Balão de fala estilo HQ
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(0, 0, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#111827";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Rabicho do balão
+            ctx.beginPath();
+            ctx.moveTo(rx.target === 'PLAYER' ? 8 : -8, 16);
+            ctx.lineTo(rx.target === 'PLAYER' ? 14 : -14, 26);
+            ctx.lineTo(rx.target === 'PLAYER' ? -2 : 2, 20);
+            ctx.closePath();
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.stroke();
+
+            // Emoji dentro do balão
+            ctx.drawImage(rx.img, -16, -16, 32, 32);
+            ctx.restore();
+        }
+    });
+
+    // -------------------------------------------------------------
+    // 7. HUD ESTILO PUNCH-OUT / PRIZEFIGHTERS (VIDAS, ENERGIA E ROUND)
+    // -------------------------------------------------------------
+    // Banner / Anúncio Central
+    if (boxeGame.announcementTimer > 0) {
+        ctx.fillStyle = "rgba(10, 15, 30, 0.85)";
+        ctx.fillRect(85, 95, canvas.width - 170, 36);
+        ctx.strokeStyle = boxeGame.announcementColor;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(85, 95, canvas.width - 170, 36);
+
+        ctx.fillStyle = boxeGame.announcementColor;
+        ctx.font = "bold 15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(boxeGame.announcement, canvas.width / 2, 118);
+        ctx.textAlign = "left";
+    }
+
+    // Cronômetro Central Superior
+    ctx.fillStyle = "rgba(15, 25, 45, 0.9)";
+    ctx.fillRect(190, 8, 70, 28);
+    ctx.strokeStyle = "#f1c40f";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(190, 8, 70, 28);
+
+    const seconds = Math.floor(boxeGame.roundTimer / 60);
+    ctx.fillStyle = (seconds <= 10 && seconds % 2 === 0) ? "#e74c3c" : "#ffffff";
+    ctx.font = "bold 13px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`0:${seconds < 10 ? '0' : ''}${seconds}`, 225, 27);
+
+    // Indicador do Round
+    ctx.fillStyle = (boxeGame.round === 3) ? "#f1c40f" : "#bdc3c7";
+    ctx.font = "bold 8px monospace";
+    ctx.fillText((boxeGame.round === 3) ? "FINAL" : `RND ${boxeGame.round}`, 225, 46);
+    ctx.textAlign = "left";
+
+    // --- HUD ESQUERDA: ZORP ---
+    // Retrato Zorp
+    if (imgEmojiZorpGuard.complete && imgEmojiZorpGuard.naturalWidth > 0) {
+        ctx.drawImage(imgEmojiZorpGuard, 8, 8, 32, 32);
+    }
+    ctx.fillStyle = "#3498db";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText("ZORP", 46, 17);
+
+    // Barra de Vida Zorp
+    ctx.fillStyle = "#1e272c";
+    ctx.fillRect(46, 21, 120, 10);
+    const zHPRatio = Math.max(0, p.hp / p.maxHp);
+    ctx.fillStyle = zHPRatio > 0.35 ? "#2ecc71" : "#e74c3c";
+    ctx.fillRect(46, 21, 120 * zHPRatio, 10);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(46, 21, 120, 10);
+
+    // Barra de Estamina Zorp
+    ctx.fillStyle = "#2c3e50";
+    ctx.fillRect(46, 33, 85, 5);
+    ctx.fillStyle = "#f1c40f";
+    ctx.fillRect(46, 33, 85 * (p.energy / p.maxEnergy), 5);
+
+    // Corações Zorp
+    ctx.fillStyle = "#e74c3c";
+    ctx.font = "10px monospace";
+    let zHearts = "";
+    for (let h = 0; h < 3; h++) zHearts += (h < p.hearts) ? "♥ " : "♡ ";
+    ctx.fillText(zHearts, 46, 48);
+
+    // --- HUD DIREITA: MESTRE ---
+    // Retrato Mestre
+    if (imgEmojiMestreSmirk.complete && imgEmojiMestreSmirk.naturalWidth > 0) {
+        ctx.drawImage(imgEmojiMestreSmirk, canvas.width - 40, 8, 32, 32);
+    }
+    ctx.fillStyle = "#e74c3c";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText("MESTRE", canvas.width - 46, 17);
+
+    // Barra de Vida Mestre
+    const mStartX = canvas.width - 46 - 120;
+    ctx.fillStyle = "#1e272c";
+    ctx.fillRect(mStartX, 21, 120, 10);
+    const mHPRatio = Math.max(0, m.hp / m.maxHp);
+    ctx.fillStyle = mHPRatio > 0.35 ? "#e74c3c" : "#f39c12";
+    ctx.fillRect(mStartX + 120 * (1 - mHPRatio), 21, 120 * mHPRatio, 10);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(mStartX, 21, 120, 10);
+
+    // Barra de Estamina Mestre
+    const mEngStartX = canvas.width - 46 - 85;
+    ctx.fillStyle = "#2c3e50";
+    ctx.fillRect(mEngStartX, 33, 85, 5);
+    ctx.fillStyle = "#e67e22";
+    ctx.fillRect(mEngStartX + 85 * (1 - (m.energy / m.maxEnergy)), 33, 85 * (m.energy / m.maxEnergy), 5);
+
+    // Corações Mestre
+    ctx.fillStyle = "#e74c3c";
+    ctx.font = "10px monospace";
+    let mHearts = "";
+    for (let h = 0; h < 3; h++) mHearts += (h < m.hearts) ? "♥ " : "♡ ";
+    ctx.fillText(mHearts, canvas.width - 46, 48);
+    ctx.textAlign = "left";
+
+    // 8. Tela de Vitória / Resultado
+    if (boxeGame.state === 'GAMEOVER') {
+        if (boxeGame.win) {
+            if (imgBoxeTelaVitoria.complete && imgBoxeTelaVitoria.naturalWidth > 0) {
+                ctx.drawImage(imgBoxeTelaVitoria, 85, 55, 280, 190);
+            }
+            ctx.fillStyle = "rgba(10, 20, 35, 0.92)";
+            ctx.fillRect(40, 205, canvas.width - 80, 75);
+            ctx.strokeStyle = "#f1c40f";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 205, canvas.width - 80, 75);
+
+            ctx.fillStyle = "#f1c40f";
+            ctx.font = "bold 14px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("★ VOCÊ VENCEU O COMBATE! ★", canvas.width / 2, 228);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px monospace";
+            ctx.fillText("Insígnia do Boxe Galáctico Conquistada!", canvas.width / 2, 248);
+
+            ctx.fillStyle = (Date.now() % 600 < 300) ? "#2ecc71" : "#ffffff";
+            ctx.font = "bold 11px monospace";
+            ctx.fillText("[ESPAÇO] CONTINUAR", canvas.width / 2, 268);
+            ctx.textAlign = "left";
+        } else {
+            drawOverlayScreen("DERROTA NO RINGUE...", [
+                "O Mestre do Boxe é um pugilista lendário!",
+                "Use [S] para guarda alta e bloqueie os socos dele!",
+                "Aperte [ESPAÇO] para tentar novamente!"
+            ], "#e74c3c");
+        }
+    }
+
+    ctx.restore();
+}
+
+
 // -------------------------------------------------------------
 // MINIGAME ARCO E FLECHA
 // -------------------------------------------------------------
@@ -1922,10 +3252,21 @@ const sceneObstacles = {
         { x: 340, y: 70, w: 30, h: 30, type: 'boulder', solid: true }
     ],
     ILHA_ESQUI: [
-        { x: 60, y: 70, w: 25, h: 35, type: 'pine_tree', solid: true },
-        { x: 360, y: 70, w: 25, h: 35, type: 'pine_tree', solid: true },
-        { x: 120, y: 200, w: 20, h: 30, type: 'snowman', solid: true },
-        { x: 280, y: 170, w: 25, h: 35, type: 'pine_tree', solid: true }
+        // Ringue Central (Cordas e Postes)
+        { x: 130, y: 55, w: 190, h: 8, solid: true }, // Corda Norte
+        { x: 130, y: 165, w: 75, h: 8, solid: true }, // Corda Sul (lado esquerdo)
+        { x: 245, y: 165, w: 75, h: 8, solid: true }, // Corda Sul (lado direito - vão central da escada livre)
+        { x: 130, y: 55, w: 8, h: 115, solid: true }, // Corda Oeste
+        { x: 312, y: 55, w: 8, h: 115, solid: true }, // Corda Leste
+        
+        // Área de Treino com Sacos de Pancada
+        { x: 45, y: 65, w: 28, h: 42, type: 'punching_bag', solid: true },
+        { x: 45, y: 135, w: 28, h: 42, type: 'punching_bag', solid: true },
+        { x: 50, y: 205, w: 35, h: 22, type: 'bench_press', solid: true },
+
+        // Mesa de Arbitragem & Oficiais
+        { x: 350, y: 70, w: 45, h: 30, type: 'judges_table', solid: true },
+        { x: 360, y: 155, w: 30, h: 25, type: 'corner_stool', solid: true }
     ],
     ILHA_PINGPONG: [
         { x: 320, y: 50, w: 60, h: 40, type: 'scoreboard', solid: true }
@@ -1936,7 +3277,11 @@ const npcs = [
     { scene: "HUB", x: 180, y: 180, img: imgTurista, tamanho: 48, msg: "> TURISTA: O arquipélago tem diversas modalidades esportivas!" },
     { scene: "HUB", x: 270, y: 130, img: imgGuia, tamanho: 48, msg: "> GUIA: Explore os caminhos ao Norte, Sul, Leste e Oeste." },
 
-    { scene: "ILHA_ESQUI", x: 120, y: 150, img: imgAlpinista, tamanho: 48, msg: "> ALPINISTA: A vista daqui de cima é espetacular!" },
+    // NPCs da Ilha de Boxe (Arena dos Campeões)
+    { scene: "ILHA_ESQUI", x: 225, y: 110, img: imgNpcMestreBoxe, tamanho: 50, msg: "> MESTRE DO BOXE: Bem-vindo ao meu ringue, Zorp! Prove sua pegada e aguente até o round final!", isMaster: "JOGO_BOXE" },
+    { scene: "ILHA_ESQUI", x: 130, y: 190, img: imgNpcTreinadorBoxe, tamanho: 50, msg: "> TREINADOR PUNCH: No boxe clássico, use [S] para guarda alta e [W] para esquivar dos socos pesados!" },
+    { scene: "ILHA_ESQUI", x: 345, y: 110, img: imgNpcArbitroBoxe, tamanho: 50, msg: "> ÁRBITRO: Regras oficiais de Punch-Out! Luta limpa e toquem as luvas quando soar o sino!" },
+    { scene: "ILHA_ESQUI", x: 80, y: 175, img: imgNpcBoxeador, tamanho: 50, msg: "> PUGILISTA: O Mestre é bruto! Bloqueie os socos com [S], contra-ataque nos desequilíbrios e mande o gancho!" },
 
     { scene: "ILHA_PINGPONG", x: 150, y: 220, img: imgAprendiz, tamanho: 48, msg: "> APRENDIZ: Treine seu tempo de reação para rebatidas." },
     { scene: "ILHA_PINGPONG", x: 225, y: 80, img: imgMestrePingPong, tamanho: 48, msg: "> MESTRE DO PING-PONG: Mostre seus reflexos!", isMaster: "JOGO_PINGPONG" },
@@ -2113,6 +3458,9 @@ function update() {
                 } else if (jogo === "JOGO_ESCALADA") {
                     currentScene = "JOGO_ESCALADA";
                     resetEscalada();
+                } else if (jogo === "JOGO_BOXE") {
+                    currentScene = "JOGO_BOXE";
+                    resetBoxe();
                 }
 
                 dialogBox.classList.remove("show");
@@ -2138,6 +3486,8 @@ function update() {
         updateBasquete();
     } else if (currentScene === "JOGO_ESCALADA") {
         updateEscaladaGame();
+    } else if (currentScene === "JOGO_BOXE") {
+        updateBoxeGame();
     }
 }
 
@@ -2503,6 +3853,30 @@ function drawSceneObstacles() {
                 ctx.fillStyle = '#3498db'; ctx.fillText('00', obs.x + 35, obs.y + 25);
                 ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + obs.w / 2 - 1, obs.y + 5, 2, obs.h - 10);
                 break;
+            case 'punching_bag':
+                if (imgBoxeSacoPancada.complete && imgBoxeSacoPancada.naturalWidth > 0) {
+                    ctx.drawImage(imgBoxeSacoPancada, obs.x, obs.y, obs.w, obs.h);
+                } else {
+                    ctx.fillStyle = '#c0392b'; ctx.fillRect(obs.x + 4, obs.y + 8, obs.w - 8, obs.h - 12);
+                }
+                break;
+            case 'bench_press':
+                ctx.fillStyle = '#2c3e50'; ctx.fillRect(obs.x, obs.y + 10, obs.w, 10);
+                ctx.fillStyle = '#7f8c8d'; ctx.fillRect(obs.x + 5, obs.y, 4, 15); ctx.fillRect(obs.x + obs.w - 9, obs.y, 4, 15);
+                ctx.fillStyle = '#bdc3c7'; ctx.fillRect(obs.x + 2, obs.y + 2, obs.w - 4, 3);
+                ctx.fillStyle = '#111111'; ctx.fillRect(obs.x, obs.y - 2, 4, 10); ctx.fillRect(obs.x + obs.w - 4, obs.y - 2, 4, 10);
+                break;
+            case 'judges_table':
+                ctx.fillStyle = '#34495e'; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                ctx.fillStyle = '#2c3e50'; ctx.fillRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
+                ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(obs.x + 10, obs.y + 10, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + 22, obs.y + 6, 16, 12);
+                break;
+            case 'corner_stool':
+                ctx.fillStyle = '#e74c3c'; ctx.fillRect(obs.x + 4, obs.y + 6, obs.w - 8, 8);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(obs.x + 6, obs.y + 2, 10, 6);
+                ctx.fillStyle = '#3498db'; ctx.fillRect(obs.x + 20, obs.y + 2, 5, 10);
+                break;
         }
     });
 }
@@ -2523,7 +3897,136 @@ function drawHUB() {
 
 function drawIlhaEsqui() {
     drawWater();
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(15, 15, 420, 270); 
+    
+    // 1. Base da Ilha (Estádio de Boxe com bordas atléticas)
+    ctx.fillStyle = "#1e272c";
+    ctx.fillRect(15, 15, 420, 270);
+    
+    // Piso de borracha atlética
+    ctx.fillStyle = "#2c3e50";
+    ctx.fillRect(25, 25, 400, 250);
+    
+    // Pistas laterais emborrachadas vermelhas (Setores de Aquecimento e Oficiais)
+    ctx.fillStyle = "#782828";
+    ctx.fillRect(30, 30, 75, 240);
+    ctx.fillRect(345, 30, 75, 240);
+
+    // Linhas demarcatórias da arena
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, 30, 390, 240);
+
+    // 2. Banner do Topo (Portal de Entrada dos Campeões)
+    ctx.fillStyle = "#111827";
+    ctx.fillRect(90, 18, 270, 22);
+    ctx.strokeStyle = "#f1c40f";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(90, 18, 270, 22);
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("★ ARENA DE BOXE - CLUBE DOS CAMPEÕES ★", 225, 33);
+    ctx.textAlign = "left";
+
+    // 3. Ringue Central de Boxe Elevado (3D Isométrico Pixel Art)
+    const rx = 130, ry = 55, rw = 190, rh = 115;
+    
+    // Sombra do ringue
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.fillRect(rx + 6, ry + 6, rw, rh + 6);
+
+    // Plataforma de madeira do ringue (apron)
+    ctx.fillStyle = "#212f3d";
+    ctx.fillRect(rx, ry, rw, rh);
+    ctx.fillStyle = "#17202a";
+    ctx.fillRect(rx, ry + rh, rw, 6);
+
+    // Lona azul do ringue de combate
+    ctx.fillStyle = "#1f4068";
+    ctx.fillRect(rx + 10, ry + 10, rw - 20, rh - 20);
+
+    // Círculo central da lona com estrela
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rx + 18, ry + 18, rw - 36, rh - 36);
+    ctx.beginPath();
+    ctx.arc(rx + rw / 2, ry + rh / 2, 22, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Logo central "GALAXY BOXE"
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("GALAXY BOXE", rx + rw / 2, ry + rh / 2 + 3);
+    ctx.textAlign = "left";
+
+    // Degraus / Escada de Acesso ao Ringue (Sul)
+    ctx.fillStyle = "#566573";
+    ctx.fillRect(205, ry + rh, 40, 8);
+    ctx.fillStyle = "#808b96";
+    ctx.fillRect(208, ry + rh + 2, 34, 4);
+
+    // Cordas do Ringue (Vermelha, Branca, Azul)
+    ctx.strokeStyle = "#e74c3c";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rx + 4, ry + 4, rw - 8, rh - 8);
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rx + 6, ry + 6, rw - 12, rh - 12);
+
+    ctx.strokeStyle = "#3498db";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rx + 8, ry + 8, rw - 16, rh - 16);
+
+    // Vão da escada no sul (cordas abertas para o lutador entrar no ringue)
+    ctx.fillStyle = "#1f4068";
+    ctx.fillRect(205, ry + rh - 10, 40, 10);
+
+    // 4 Postes de Canto (Turnbuckles)
+    ctx.fillStyle = "#c0392b"; ctx.fillRect(rx, ry - 4, 8, 14); // Canto Vermelho
+    ctx.fillStyle = "#ecf0f1"; ctx.fillRect(rx + rw - 8, ry - 4, 8, 14); // Neutro
+    ctx.fillStyle = "#ecf0f1"; ctx.fillRect(rx, ry + rh - 10, 8, 14); // Neutro
+    ctx.fillStyle = "#2980b9"; ctx.fillRect(rx + rw - 8, ry + rh - 10, 8, 14); // Canto Azul
+
+    // Holofotes de Estádio (Luz suave projetada no ringue)
+    ctx.fillStyle = "rgba(255, 241, 118, 0.08)";
+    ctx.beginPath();
+    ctx.moveTo(rx - 20, 0);
+    ctx.lineTo(rx + rw + 20, 0);
+    ctx.lineTo(rx + rw - 10, ry + rh);
+    ctx.lineTo(rx + 10, ry + rh);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Setor de Treinamento (Oeste)
+    ctx.fillStyle = "#1b2631";
+    ctx.fillRect(38, 55, 60, 195);
+    ctx.strokeStyle = "#f39c12";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(38, 55, 60, 195);
+
+    // Suporte dos Sacos de Pancada (Viga de ferro)
+    ctx.fillStyle = "#7f8c8d";
+    ctx.fillRect(40, 58, 56, 4);
+
+    // 5. Setor de Oficiais e Troféus (Leste)
+    ctx.fillStyle = "#1b2631";
+    ctx.fillRect(352, 55, 60, 195);
+    ctx.strokeStyle = "#3498db";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(352, 55, 60, 195);
+
+    // Pedestal do Troféu da Luva de Ouro
+    ctx.fillStyle = "#34495e";
+    ctx.fillRect(367, 195, 30, 20);
+    ctx.fillStyle = "#f1c40f";
+    ctx.beginPath();
+    ctx.arc(382, 190, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(379, 196, 6, 8);
+
+    // Caminho de saída ao Sul (volta para o HUB)
     drawPath(205, 270, 40, 30);
 }
 
@@ -2791,6 +4294,7 @@ function draw() {
     else if (currentScene === "JOGO_ARCO") drawArcoGame();
     else if (currentScene === "JOGO_BASQUETE") drawBasqueteGame();
     else if (currentScene === "JOGO_ESCALADA") drawEscaladaGame();
+    else if (currentScene === "JOGO_BOXE") drawBoxeGame();
     
     if (!currentScene.startsWith("JOGO_")) {
         drawSceneObstacles();
@@ -2800,7 +4304,7 @@ function draw() {
         drawPlayer();
     }
     
-    if (currentScene !== "JOGO_ARCO" && currentScene !== "JOGO_BASQUETE" && currentScene !== "JOGO_ESCALADA") {
+    if (currentScene !== "JOGO_ARCO" && currentScene !== "JOGO_BASQUETE" && currentScene !== "JOGO_ESCALADA" && currentScene !== "JOGO_BOXE") {
         drawHUD();
     }
 }

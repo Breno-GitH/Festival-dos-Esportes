@@ -264,14 +264,23 @@ const zorpSprite = {
 const pingPong = {
     playerX: 50, playerY: 140, 
     opponentX: 370, opponentY: 140, 
-    speed: 3,
-    ballX: 225, ballY: 150, ballSpeedX: 3, ballSpeedY: 2, ballRadius: 4,
+    speed: 3.5,
+    ballX: 100, ballY: 145, ballZ: 20,
+    ballSpeedX: 4, ballSpeedY: 0, ballSpeedZ: 2,
+    ballRadius: 4, gravity: 0.22,
     playerScore: 0, opponentScore: 0, maxScore: 3,
     playerAction: "IDLE", opponentAction: "IDLE",  
     playerHitTimer: 0, opponentHitTimer: 0,
     power: 0, maxPower: 100, isPowerActive: false,
+    mestrePower: 0, isMestreSpecial: false, mestreBannerTimer: 0,
+    rallyHits: 0,
     gameState: 'TUTORIAL',
-    win: false
+    win: false,
+    lastHitter: null,
+    playerBounces: 0,
+    opponentBounces: 0,
+    bounceEffects: [],
+    server: 'PLAYER'
 };
 
 // -------------------------------------------------------------
@@ -3824,22 +3833,55 @@ function update() {
 // 5. MINIGAME PING PONG
 // -------------------------------------------------------------
 function resetPingPong(fullReset = false) {
-    pingPong.ballX = 225;
-    pingPong.ballY = 150;
-    pingPong.ballSpeedX = Math.random() > 0.5 ? 3 : -3;
-    pingPong.ballSpeedY = (Math.random() - 0.5) * 4;
-    pingPong.playerHitTimer = 0;
-    pingPong.opponentHitTimer = 0;
-    pingPong.isPowerActive = false;
-    
-    if(fullReset) {
+    if (fullReset) {
         pingPong.playerScore = 0;
         pingPong.opponentScore = 0;
         pingPong.power = 0;
+        pingPong.mestrePower = 0;
         pingPong.playerX = 50;
         pingPong.playerY = 140;
+        pingPong.opponentX = 370;
+        pingPong.opponentY = 140;
         pingPong.gameState = 'TUTORIAL';
         pingPong.win = false;
+        pingPong.server = 'PLAYER';
+    }
+    
+    pingPong.playerHitTimer = 0;
+    pingPong.opponentHitTimer = 0;
+    pingPong.isPowerActive = false;
+    pingPong.isMestreSpecial = false;
+    pingPong.mestreBannerTimer = 0;
+    pingPong.rallyHits = 0;
+    pingPong.lastHitter = null;
+    pingPong.playerBounces = 0;
+    pingPong.opponentBounces = 0;
+    pingPong.bounceEffects = [];
+
+    if (pingPong.server === 'PLAYER') {
+        pingPong.ballX = 100;
+        pingPong.ballY = pingPong.playerY + 20;
+        pingPong.ballZ = 22;
+        let targetX = 250;
+        let targetY = 145;
+        pingPong.ballSpeedX = 4.0;
+        let t = (targetX - pingPong.ballX) / pingPong.ballSpeedX;
+        pingPong.ballSpeedY = (targetY - pingPong.ballY) / t;
+        pingPong.ballSpeedZ = 0.5 * pingPong.gravity * t - pingPong.ballZ / t + 0.5;
+        pingPong.lastHitter = 'PLAYER';
+        pingPong.server = 'OPPONENT';
+    } else {
+        pingPong.ballX = 350;
+        pingPong.ballY = pingPong.opponentY + 20;
+        pingPong.ballZ = 22;
+        let targetX = 200;
+        let targetY = 145;
+        pingPong.ballSpeedX = -4.0;
+        let t = (targetX - pingPong.ballX) / pingPong.ballSpeedX;
+        pingPong.ballSpeedY = (targetY - pingPong.ballY) / t;
+        pingPong.ballSpeedZ = 0.5 * pingPong.gravity * t - pingPong.ballZ / t + 0.5;
+        pingPong.lastHitter = 'OPPONENT';
+        pingPong.server = 'PLAYER';
     }
 }
 
@@ -3867,8 +3909,8 @@ function updatePingPong() {
     if (keys.a) pMoveX -= pingPong.speed;
     if (keys.d) pMoveX += pingPong.speed;
 
-    pingPong.playerX = Math.max(30, Math.min(180, pingPong.playerX + pMoveX));
-    pingPong.playerY = Math.max(70, Math.min(230, pingPong.playerY + pMoveY));
+    pingPong.playerX = Math.max(30, Math.min(150, pingPong.playerX + pMoveX));
+    pingPong.playerY = Math.max(80, Math.min(210, pingPong.playerY + pMoveY));
 
     if (pMoveY < 0) pingPong.playerAction = "MOVE_UP";
     else if (pMoveY > 0) pingPong.playerAction = "MOVE_DOWN";
@@ -3883,64 +3925,192 @@ function updatePingPong() {
         pingPong.isPowerActive = true;
     }
 
-    const targetY = pingPong.ballY;
-    if (pingPong.opponentY < targetY - 10) {
-        pingPong.opponentY += 2.2;
+    // Movimentacao da IA do Mestre (alinha o centro do sprite 36x48 com a bola)
+    const targetY = pingPong.ballY - 20;
+    let mestreSpeed = Math.min(4.8, 2.5 + pingPong.rallyHits * 0.18);
+    if (pingPong.opponentY < targetY - 6) {
+        pingPong.opponentY += mestreSpeed;
         pingPong.opponentAction = "MOVE_DOWN";
-    } else if (pingPong.opponentY > targetY + 10) {
-        pingPong.opponentY -= 2.2;
+    } else if (pingPong.opponentY > targetY + 6) {
+        pingPong.opponentY -= mestreSpeed;
         pingPong.opponentAction = "MOVE_UP";
     } else {
         pingPong.opponentAction = "IDLE";
     }
-    pingPong.opponentY = Math.max(70, Math.min(230, pingPong.opponentY));
+    pingPong.opponentY = Math.max(80, Math.min(210, pingPong.opponentY));
 
     if (pingPong.opponentHitTimer > 0) {
         pingPong.opponentAction = "HIT";
         pingPong.opponentHitTimer--;
     }
 
+    // ---------------------------------------------------------
+    // FÍSICA DA BOLA (3D: Gravity, Arc & Table Bounces)
+    // ---------------------------------------------------------
+    let prevX = pingPong.ballX;
+    let prevZ = pingPong.ballZ;
+
+    pingPong.ballSpeedZ -= pingPong.gravity;
     pingPong.ballX += pingPong.ballSpeedX;
     pingPong.ballY += pingPong.ballSpeedY;
+    pingPong.ballZ += pingPong.ballSpeedZ;
 
-    if (pingPong.ballY <= 80 || pingPong.ballY >= 230) pingPong.ballSpeedY *= -1;
+    // 1. Rede da Mesa (Rede em X=225, altura 14px)
+    const NET_X = 225;
+    if ((prevX < NET_X && pingPong.ballX >= NET_X) || (prevX > NET_X && pingPong.ballX <= NET_X)) {
+        if (pingPong.ballZ < 14) {
+            pingPong.ballSpeedX *= -0.3;
+            pingPong.ballSpeedZ = 0.8;
+            pingPong.bounceEffects.push({ x: NET_X, y: pingPong.ballY, radius: 2, maxRadius: 12, alpha: 1.0, color: '#ffeb3b' });
+        }
+    }
 
-    let pBox = { x: pingPong.playerX - 10, y: pingPong.playerY - 10, w: 40, h: 50 };
-    if (pingPong.ballX > pBox.x && pingPong.ballX < pBox.x + pBox.w && 
-        pingPong.ballY > pBox.y && pingPong.ballY < pBox.y + pBox.h) {
-        if (pingPong.ballSpeedX < 0) {
-            pingPong.playerHitTimer = 12; 
+    // 2. Colisão / Quique na Superfície da Mesa / Chão (Z <= 0)
+    const TABLE_MIN_X = 160;
+    const TABLE_MAX_X = 290;
+    const TABLE_MIN_Y = 105;
+    const TABLE_MAX_Y = 185;
+
+    if (prevZ >= 0 && pingPong.ballZ <= 0) {
+        pingPong.ballZ = 0;
+        // Quique contínuo sem pontuar por 2 quiques ou saídas laterais!
+        if (pingPong.ballX >= TABLE_MIN_X && pingPong.ballX <= TABLE_MAX_X &&
+            pingPong.ballY >= TABLE_MIN_Y && pingPong.ballY <= TABLE_MAX_Y) {
+            pingPong.ballSpeedZ = -pingPong.ballSpeedZ * 0.72;
+        } else {
+            pingPong.ballSpeedZ = -pingPong.ballSpeedZ * 0.65;
+        }
+        if (Math.abs(pingPong.ballSpeedZ) < 0.5) pingPong.ballSpeedZ = 0;
+
+        let bounceColor = pingPong.isMestreSpecial ? '#e74c3c' : (pingPong.isPowerActive ? '#ff9800' : '#ffffff');
+        pingPong.bounceEffects.push({ x: pingPong.ballX, y: pingPong.ballY, radius: 2, maxRadius: 11, alpha: 1.0, color: bounceColor });
+    }
+
+    // 3. Rebatida do Jogador Zorp (Hitbox 100% fiel ao sprite 36x48)
+    if (pingPong.ballSpeedX < 0) {
+        let zLeft = pingPong.playerX + 2;
+        let zRight = pingPong.playerX + 38;
+        let zTopY = pingPong.playerY - 4;
+        let zBottomY = pingPong.playerY + 52;
+
+        if (pingPong.ballX >= zLeft && pingPong.ballX <= zRight &&
+            pingPong.ballY >= zTopY && pingPong.ballY <= zBottomY &&
+            pingPong.ballZ >= -5 && pingPong.ballZ <= 45) {
+            
+            pingPong.playerHitTimer = 12;
+            pingPong.lastHitter = 'PLAYER';
+            pingPong.rallyHits++;
+
+            let baseSpeed = Math.min(8.5, 4.2 + pingPong.rallyHits * 0.35);
+            let targetX = 255;
+
             if (pingPong.isPowerActive) {
-                pingPong.ballSpeedX = 7.5;
+                baseSpeed = Math.max(7.5, baseSpeed + 2.5);
+                targetX = 280;
                 pingPong.power = 0;
                 pingPong.isPowerActive = false;
             } else {
-                pingPong.ballSpeedX = Math.abs(pingPong.ballSpeedX) + 0.3;
                 pingPong.power = Math.min(pingPong.maxPower, pingPong.power + 25);
             }
-            pingPong.ballSpeedY = (pingPong.ballY - pingPong.playerY) * 0.15;
+
+            pingPong.ballSpeedX = baseSpeed;
+
+            let aimY = 0;
+            if (keys.w) aimY -= 25;
+            if (keys.s) aimY += 25;
+            let paddleOffset = (pingPong.ballY - (pingPong.playerY + 24)) * 0.7;
+            let randomAngle = (Math.random() - 0.5) * 18;
+            let targetY = Math.max(108, Math.min(182, pingPong.ballY + aimY + paddleOffset + randomAngle));
+
+            let t = (targetX - pingPong.ballX) / pingPong.ballSpeedX;
+            pingPong.ballSpeedY = (targetY - pingPong.ballY) / t;
+            pingPong.ballSpeedZ = 0.5 * pingPong.gravity * t - pingPong.ballZ / t + 0.6;
+            if (pingPong.ballSpeedZ < 2.0) pingPong.ballSpeedZ = 2.0;
+
+            pingPong.mestrePower = Math.min(100, pingPong.mestrePower + 35);
         }
     }
 
-    let mBox = { x: pingPong.opponentX - 15, y: pingPong.opponentY - 15, w: 50, h: 60 };
-    if (pingPong.ballX > mBox.x && pingPong.ballX < mBox.x + mBox.w && 
-        pingPong.ballY > mBox.y && pingPong.ballY < mBox.y + mBox.h) {
-        if (pingPong.ballSpeedX > 0) {
+    // 4. Rebatida do Mestre (Hitbox 100% fiel ao sprite 36x48)
+    if (pingPong.ballSpeedX > 0) {
+        let mLeft = pingPong.opponentX - 6;
+        let mRight = pingPong.opponentX + 30;
+        let mTopY = pingPong.opponentY - 4;
+        let mBottomY = pingPong.opponentY + 52;
+
+        if (pingPong.ballX >= mLeft && pingPong.ballX <= mRight &&
+            pingPong.ballY >= mTopY && pingPong.ballY <= mBottomY &&
+            pingPong.ballZ >= -5 && pingPong.ballZ <= 45) {
+
             pingPong.opponentHitTimer = 12;
-            let returnSpeed = Math.min(4.5, pingPong.ballSpeedX + 0.2); 
-            pingPong.ballSpeedX = -Math.abs(returnSpeed);
-            pingPong.ballSpeedY = (pingPong.ballY - pingPong.opponentY) * 0.15;
+            pingPong.lastHitter = 'OPPONENT';
+            pingPong.rallyHits++;
+
+            let isMestreSmash = false;
+            if (pingPong.mestrePower >= 100 || (pingPong.rallyHits >= 3 && Math.random() < 0.35)) {
+                isMestreSmash = true;
+                pingPong.mestrePower = 0;
+                pingPong.isMestreSpecial = true;
+                pingPong.mestreBannerTimer = 45;
+                pingPong.opponentHitTimer = 20;
+            } else {
+                pingPong.isMestreSpecial = false;
+            }
+
+            let baseSpeed = Math.min(8.5, 4.0 + pingPong.rallyHits * 0.35);
+            if (isMestreSmash) {
+                baseSpeed = Math.max(8.0, baseSpeed + 3.0);
+            }
+
+            pingPong.ballSpeedX = -baseSpeed;
+
+            let targetY;
+            let rndChoice = Math.random();
+            if (isMestreSmash) {
+                targetY = (pingPong.playerY < 140) ? 178 : 112;
+            } else if (rndChoice < 0.45) {
+                targetY = (pingPong.playerY < 140) ? (150 + Math.random() * 28) : (108 + Math.random() * 28);
+            } else if (rndChoice < 0.8) {
+                targetY = Math.max(108, Math.min(182, pingPong.opponentY + 24 + (Math.random() - 0.5) * 45));
+            } else {
+                targetY = 145 + (Math.random() - 0.5) * 20;
+            }
+
+            let targetX = isMestreSmash ? 168 : (175 + Math.random() * 30);
+
+            let t = (targetX - pingPong.ballX) / pingPong.ballSpeedX;
+            pingPong.ballSpeedY = (targetY - pingPong.ballY) / t;
+            pingPong.ballSpeedZ = 0.5 * pingPong.gravity * t - pingPong.ballZ / t + 0.6;
+            if (pingPong.ballSpeedZ < 2.0) pingPong.ballSpeedZ = 2.0;
+
+            if (isMestreSmash) {
+                pingPong.bounceEffects.push({ x: pingPong.opponentX, y: pingPong.opponentY + 20, radius: 4, maxRadius: 18, alpha: 1.0, color: '#e74c3c' });
+            }
         }
     }
 
-    if (pingPong.ballX < -10) {
+    // 5. Efeitos Visuais de Quique
+    for (let i = pingPong.bounceEffects.length - 1; i >= 0; i--) {
+        let b = pingPong.bounceEffects[i];
+        b.radius += 0.8;
+        b.alpha -= 0.08;
+        if (b.alpha <= 0) pingPong.bounceEffects.splice(i, 1);
+    }
+
+    // 6. REGRA DE PONTUAÇÃO ÚNICA: A bola passou pelo Zorp ou pelo Mestre sem eles encostarem!
+    if (pingPong.ballX < pingPong.playerX - 15) {
+        // Bola passou pelo Zorp (esquerda) sem ele conseguir rebater -> Ponto do Mestre!
         pingPong.opponentScore++;
         resetPingPong(false);
-    } else if (pingPong.ballX > canvas.width + 10) {
+        return;
+    } else if (pingPong.ballX > pingPong.opponentX + 30) {
+        // Bola passou pelo Mestre (direita) sem ele conseguir rebater -> Ponto do Zorp!
         pingPong.playerScore++;
         resetPingPong(false);
+        return;
     }
 
+    // 7. Fim de Jogo
     if (pingPong.playerScore >= pingPong.maxScore) {
         insignias.pingpong = true;
         pingPong.gameState = 'GAMEOVER';
@@ -4540,18 +4710,57 @@ function drawPingPongGame() {
     if (zorpSpriteImg.complete) ctx.drawImage(zorpSpriteImg, pingPong.playerX, pingPong.playerY, 36, 48);
     if (mestreSpriteImg.complete) ctx.drawImage(mestreSpriteImg, pingPong.opponentX, pingPong.opponentY, 36, 48);
 
-    if (Math.abs(pingPong.ballSpeedX) > 6) {
+    // Efeitos Visuais de Quique na Mesa / Rede
+    if (pingPong.bounceEffects) {
+        pingPong.bounceEffects.forEach(b => {
+            ctx.strokeStyle = b.color || "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.radius * 1.5, b.radius * 0.7, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+    }
+
+    // Sombra 3D da Bolinha na Mesa/Chão
+    let shadowRadius = Math.max(1, pingPong.ballRadius * (1 - pingPong.ballZ / 90));
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.beginPath();
+    ctx.ellipse(pingPong.ballX, pingPong.ballY, shadowRadius * 1.4, shadowRadius * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bolinha em Posição 3D (Y_draw = Y - Z)
+    let ballDrawY = pingPong.ballY - pingPong.ballZ;
+
+    if (pingPong.isMestreSpecial || pingPong.ballSpeedX < -7.0) {
+        ctx.fillStyle = "#e74c3c"; ctx.shadowBlur = 12; ctx.shadowColor = "#ff0055";
+    } else if (Math.abs(pingPong.ballSpeedX) > 6 || pingPong.isPowerActive) {
         ctx.fillStyle = "#ff5722"; ctx.shadowBlur = 10; ctx.shadowColor = "#ffeb3b";
     } else {
         ctx.fillStyle = "#ffffff"; ctx.shadowBlur = 0;
     }
 
-    ctx.beginPath(); ctx.arc(pingPong.ballX, pingPong.ballY, pingPong.ballRadius, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(pingPong.ballX, ballDrawY, pingPong.ballRadius, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
 
+    // Banner de Aviso: SMASH DO MESTRE!
+    if (pingPong.mestreBannerTimer > 0) {
+        ctx.fillStyle = (Date.now() % 200 < 100) ? "#e74c3c" : "#f39c12";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("⚡ SUPER SMASH DO MESTRE! ⚡", canvas.width / 2, 58);
+        ctx.textAlign = "left";
+        pingPong.mestreBannerTimer--;
+    }
+
+    // HUD / Placar
     ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px monospace";
-    ctx.fillText(`ZORP: ${pingPong.playerScore}`, 100, 30);
+    ctx.fillText(`ZORP: ${pingPong.playerScore}`, 80, 30);
     ctx.fillText(`MESTRE: ${pingPong.opponentScore}`, 270, 30);
+
+    if (pingPong.rallyHits > 0) {
+        ctx.fillStyle = "#ffeb3b"; ctx.font = "bold 11px monospace";
+        ctx.fillText(`RALI: ${pingPong.rallyHits}x VELOCIDADE`, 160, 20);
+    }
 
     ctx.fillStyle = "#333"; ctx.fillRect(80, 40, 100, 10);
     if (pingPong.isPowerActive || pingPong.power >= pingPong.maxPower) {
@@ -4569,9 +4778,10 @@ function drawPingPongGame() {
     if (pingPong.gameState === 'TUTORIAL') {
         drawOverlayScreen("PING PONG", [
             "Chegue a " + pingPong.maxScore + " pontos para vencer.",
-            "Use W A S D para se mover.",
-            "Rebata a bola para carregar sua barra.",
-            "Aperte ESPAÇO para um Smash Especial!"
+            "Use W A S D para mover e direcionar tiros.",
+            "Cada rebatida acelera a velocidade do rali!",
+            "Aperte ESPAÇO para seu Smash Especial!",
+            "Atenção ao Super Smash do Mestre!"
         ], "#3498db");
     } else if (pingPong.gameState === 'GAMEOVER') {
         if (pingPong.win) {
